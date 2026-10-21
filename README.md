@@ -148,7 +148,7 @@ switched off in the Chat tab.
 
 ## The pre-call screen
 
-<img src="assets/showcase-precall.png" alt="The screen before joining a voice channel, on a deep green Own theme, with three avatars, the channel name, Join Voice and a matching green Limelight button beside it" width="100%">
+<img src="assets/showcase-precall.png" alt="The screen before joining a voice channel, on a deep green Own theme, with three preview tiles in each person's theme, the channel name, Join Voice and a matching green Limelight button beside it" width="100%">
 
 Before you join, the pre-call screen can stay as **Discord** draws it, take the
 **Follow grid** stage, or use a background of its **Own**. The Limelight button beside
