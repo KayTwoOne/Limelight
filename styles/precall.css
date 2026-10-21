@@ -1,0 +1,99 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * The pre-call screen (ChannelCallEmpty). Its root is marked by the patch, so a
+ * failed patch leaves none of this applied. What paints the stage is generated
+ * (plugin/logic/styleSheet.ts), because it depends on the look: the Discord look
+ * emits nothing and renders no stage, so this file changes nothing about it.
+ */
+
+.limelight-precall {
+    position: relative;
+    isolation: isolate;
+}
+
+/* Sits exactly where Discord's animated background sits, above it, and paints
+   only when the generated sheet gives it a background (a chosen look). Discord's
+   background is absolutely positioned and fills the screen (the animated one by
+   class, the static one inline), so the stage covers it with the same box. It is
+   named as a child of the marked root: if the patch that marks the root stops
+   matching while the one that adds the stage still applies, the stage is an
+   empty static element with nothing painted, and cannot cover Join Voice. */
+.limelight-precall > .vc-limelight-precall-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Everything Discord draws after the stage stays above it. The stage follows
+   Discord's background in the tree, so the background is not among these: it
+   stays beneath the stage, where a chosen look has covered it. */
+.limelight-precall > .vc-limelight-precall-stage ~ * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Join Voice and the Limelight button, side by side. */
+.vc-limelight-precall-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+/* The popover's anchor. A flex box, so the button fills it with no line gap
+   beneath. */
+.vc-limelight-precall-button {
+    display: flex;
+}
+
+/* The Limelight button wears the theme's colours (logic/precallButton.ts), so
+   it is never lost in the background or washed out by a white fill. Discord's
+   Button sets its own colours per variant; these replace only the fill and
+   ink, keeping its size, radius, focus ring and layout. The button is a direct
+   child of the span: Discord's Button renders it bare, and its focus ring is
+   added to the button itself and drawn by a separate element, so there is no
+   wrapper between them. !important is what beats Discord's variant rules,
+   including the :hover and :active ones, which only change background-color,
+   border-color and color (Discord's hover is a colour change, not an overlay),
+   so the white variant colours cannot come back on hover or press.
+
+   Every rule here is skipped in forced-colours mode: Discord puts
+   enable-forced-colors on <html> (its own rules are written against
+   html.enable-forced-colors) and gives the button the system's ButtonFace and
+   ButtonText there, which the user has chosen and which must not be painted
+   over. */
+html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button > button {
+    background-color: var(--ll-pc-fill) !important;
+    color: var(--ll-pc-ink) !important;
+    /* Discord's own button timing for a hover; it replaces the colour
+       transitions, which have nothing to do now that the fill is a variable. */
+    transition: filter 0.15s ease-out;
+}
+
+/* The mark sets its own colour (the lime accent, panel.css), which would
+   override the ink the button gives it and put lime back on the fill. */
+html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button .vc-limelight-mark {
+    color: var(--ll-pc-ink);
+}
+
+/* Hover and press: a small brightness step instead of Discord's variant colour,
+   which would put white back. The fill is held to 3.3:1, so neither step takes it
+   under 3:1. */
+html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button > button:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button > button:active:not(:disabled) {
+    filter: brightness(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button > button {
+        transition: none;
+    }
+}

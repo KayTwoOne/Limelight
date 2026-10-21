@@ -1,0 +1,177 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * The pill. Values are docs/design/tokens.md section 2. Every selector starts at
+ * .ll-pill or .limelight-tile: the pill is hidden until the tile marker that
+ * Limelight's CallTile patch adds is present, so a failed patch cannot leave an
+ * unstyled pill in Discord's tile.
+ *
+ * s is the chrome scale (spec 7): every size is written as calc(N * var(--ll-s)).
+ * The glow, ring width, divider width and letter-spacing are fixed (tokens.md 6).
+ * Tiers.ts sets data-tier on the pill: absent or full, compact, or mini.
+ */
+
+.ll-pill {
+    display: none;
+}
+
+/* Discord's own name plate and activity button are hidden only on a tile that
+   has a pill, so the name is never drawn twice and nothing is lost if the pill
+   did not render. The action buttons stay. */
+.limelight-tile:has(.ll-pill) [class*="overlayIconsContainer__"] {
+    display: none;
+}
+
+.limelight-tile .ll-pill {
+    /* cqw resolves against the ll-tile container (tiles.css). If this Chromium
+       cannot do sqrt(), tiers.ts writes --ll-s on the pill itself as a number. */
+    --ll-s: calc(clamp(0.8, sqrt(100cqw / 720px), 1.25) * var(--ll-zoom, 1));
+
+    position: absolute;
+    top: calc(10px * var(--ll-s));
+    inset-inline-start: calc(10px * var(--ll-s));
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: calc(6px * var(--ll-s));
+    width: max-content;
+    height: calc(40px * var(--ll-s));
+    padding-inline: calc(12px * var(--ll-s)) calc(14px * var(--ll-s));
+    border-radius: calc(20px * var(--ll-s));
+    background: rgba(12, 13, 15, 0.82);
+    backdrop-filter: blur(10px);
+    box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--ll-ring, var(--status-speaking)) 0%, transparent),
+        0 6px 18px rgba(0, 0, 0, 0.35);
+    color: #f2f3f5;
+    font-family: var(--font-primary);
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+    transition: box-shadow 300ms ease, background 300ms ease, opacity 240ms ease;
+}
+
+/* The avatar leads a live pill: 7px in, 26px wide, 9px before the name. */
+.limelight-tile .ll-pill[data-live="true"] {
+    padding-inline-start: calc(7px * var(--ll-s));
+}
+
+.limelight-tile .ll-pill-avatar {
+    flex: none;
+    width: calc(26px * var(--ll-s));
+    height: calc(26px * var(--ll-s));
+    margin-inline-end: calc(3px * var(--ll-s));
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* Weight extremes inside Discord's own stack: 800 for the name, 400 beside it. */
+.limelight-tile .ll-pill-name {
+    font-size: calc(14px * var(--ll-s));
+    font-weight: 800;
+    line-height: calc(20px * var(--ll-s));
+}
+
+.limelight-tile .ll-pill-icons {
+    display: flex;
+    align-items: center;
+    gap: calc(6px * var(--ll-s));
+}
+
+.limelight-tile .ll-pill-icon {
+    display: block;
+    flex: none;
+    width: calc(16px * var(--ll-s));
+    height: calc(16px * var(--ll-s));
+}
+
+.limelight-tile .ll-pill-more {
+    display: flex;
+    align-items: center;
+    gap: calc(6px * var(--ll-s));
+}
+
+.limelight-tile .ll-pill-sep {
+    flex: none;
+    width: 1px;
+    height: calc(16px * var(--ll-s));
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.limelight-tile .ll-pill-act {
+    display: flex;
+    align-items: center;
+    gap: calc(5px * var(--ll-s));
+    color: #c9ccd1;
+    font-size: calc(13px * var(--ll-s));
+    font-weight: 400;
+    line-height: calc(20px * var(--ll-s));
+}
+
+.limelight-tile .ll-pill-act-icon {
+    display: block;
+    flex: none;
+    width: calc(16px * var(--ll-s));
+    height: calc(16px * var(--ll-s));
+    border-radius: calc(4px * var(--ll-s));
+    object-fit: cover;
+}
+
+/*
+ * Speaking ring (tokens.md 2.8), live and watching only: 2px round the pill and
+ * an 18px glow at 0.45, in the person's ring colour. --ll-ring is set by the
+ * generated sheet only for a custom colour, so Discord's own --status-speaking
+ * is the default. The resting shadow above has the same shape, so it fades.
+ */
+.limelight-tile .ll-pill[data-live="true"][data-speaking="true"] {
+    box-shadow:
+        0 0 0 2px var(--ll-ring, var(--status-speaking)),
+        0 0 18px color-mix(in srgb, var(--ll-ring, var(--status-speaking)) 45%, transparent);
+}
+
+/*
+ * Tiers (tokens.md 2.7). A part that does not fit is taken out of the flow and
+ * clipped, not removed, so it keeps its width for the next measurement and
+ * stays in the accessibility tree. Mini keeps the avatar chip only (spec 7), so
+ * the end-to-end encryption shield goes with the rest; Full and Compact keep it.
+ */
+.limelight-tile .ll-pill[data-tier="compact"] > .ll-pill-more,
+.limelight-tile .ll-pill[data-tier="mini"] > :is(.ll-pill-name, .ll-pill-icons, .ll-pill-more, .ll-pill-shield) {
+    position: absolute;
+    clip-path: inset(50%);
+}
+
+/* Mini: a 40px chip holding the 26px avatar. Normal state has no pill at all. */
+.limelight-tile .ll-pill[data-tier="mini"] {
+    width: calc(40px * var(--ll-s));
+}
+
+.limelight-tile .ll-pill[data-tier="mini"][data-live="false"] {
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+
+/* The end-to-end encryption shield sits after the status icons. */
+.limelight-tile .ll-pill-shield {
+    flex: none;
+}
+
+/* Discord's "video disabled" status sits top-left, where the pill goes. It is
+   always in the tree and empty unless it has something to say. */
+.limelight-tile:has([class*="overlayTop__"]:not(:empty)) .ll-pill {
+    top: 50px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .limelight-tile .ll-pill {
+        transition-duration: 1ms;
+        transition-delay: 0ms;
+    }
+}

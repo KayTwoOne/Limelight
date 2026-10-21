@@ -1,0 +1,88 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * Tiles. Every selector starts at .limelight-tile or .limelight-slot, the
+ * classes only Limelight's CallTile patch adds, so a patch that fails to apply
+ * switches this whole file off by itself.
+ *
+ * G5: no rule here sets a colour or a background of its own. The one background
+ * (the spotlight) paints at opacity var(--ll-spot, 0), a variable only the
+ * generated stylesheet defines, so it is invisible until a theme turns it on.
+ * Person themes, ring colours and tile corners reach the tiles from that sheet.
+ * Values are docs/design/tokens.md sections 1.2, 1.4, 1.5 and 1.9.
+ */
+
+/* The tile (Discord's visual box) is the chrome-scale container: the pill reads
+   its width as cqw. */
+.limelight-tile {
+    container: ll-tile / inline-size;
+    transition: border-radius 260ms ease, filter 280ms ease;
+}
+
+/* The slot (the root Discord sizes) is the spacing container. */
+.limelight-slot {
+    container: ll-slot / inline-size;
+}
+
+/*
+ * Tile spacing without touching Discord's layout maths (spec 6.7): the visual
+ * box is scaled about its centre inside its own slot. The generated sheet sets
+ * --ll-gap-delta on the call container (Tight +5px, Airy -10px, Normal 0). Tiles
+ * are 16:9, so the height term is 56.25cqw. Only the grid is spaced: not the
+ * filmstrip, not the maximised tile.
+ */
+.limelight-slot:not([class*="focusedVideo_"]):not([class*="participantsWrapperAnimated__"] .limelight-slot) .limelight-tile {
+    transform: scale(
+        calc((100cqw + var(--ll-gap-delta, 0px)) / 100cqw),
+        calc((56.25cqw + var(--ll-gap-delta, 0px)) / 56.25cqw)
+    );
+    transform-origin: center;
+}
+
+/*
+ * Spotlight (tokens.md 1.4): the overhead light over a person's background, at
+ * the opacity their theme gives --ll-spot. The avatar is lifted above it. A
+ * stream tile has no background_ child, and live tiles are forced to 0 anyway.
+ */
+.limelight-tile [class*="content__"] > [class*="background_"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(58% 78% at 50% -12%, rgba(255, 246, 210, 0.22) 0%, rgba(255, 246, 210, 0.07) 42%, rgba(255, 246, 210, 0) 70%);
+    opacity: var(--ll-spot, 0);
+    transition: opacity 320ms ease;
+}
+
+.limelight-tile.limelight-live [class*="content__"] > [class*="background_"]::after {
+    opacity: 0;
+}
+
+.limelight-tile [class*="avatarWrapper_"] {
+    position: relative;
+    z-index: 1;
+}
+
+/*
+ * Speaking ring (tokens.md 1.5): Discord's own ring keeps its element and its
+ * colour variable, --status-speaking, which the generated sheet sets per person.
+ * While a person is live the tile-edge ring is hidden and the pill carries it.
+ * The inline box-shadow Discord writes needs !important to lose.
+ */
+@media not (forced-colors: active) {
+    .limelight-tile.limelight-live [class*="border__"]:not([class*="voiceChannelEffect__"]) {
+        box-shadow: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .limelight-tile,
+    .limelight-tile [class*="content__"] > [class*="background_"]::after {
+        transition-duration: 1ms;
+        transition-delay: 0ms;
+    }
+}

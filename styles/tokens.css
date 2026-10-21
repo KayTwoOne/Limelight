@@ -1,0 +1,38 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * The tokens every Limelight stylesheet uses. They are declared only on
+ * Limelight's own elements (the classes its patches add), so a failed patch
+ * leaves nothing of Limelight's in Discord's tree. Easing and durations are
+ * tokens.md section 3; reduced motion makes every one of them instant.
+ */
+
+.limelight-tile,
+.limelight-slot,
+.ll-pill,
+[class*="vc-limelight-"] {
+    --ll-accent: #d8f35a;
+    --ll-ease: cubic-bezier(0.22, 0.9, 0.24, 1);
+    --ll-move: 620ms;
+    --ll-fade: 420ms;
+    --ll-slow: 720ms;
+    --ll-delay-1: 50ms;
+    --ll-delay-2: 90ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .limelight-tile,
+    .limelight-slot,
+    .ll-pill,
+    [class*="vc-limelight-"] {
+        --ll-move: 1ms;
+        --ll-fade: 1ms;
+        --ll-slow: 1ms;
+        --ll-delay-1: 0ms;
+        --ll-delay-2: 0ms;
+    }
+}

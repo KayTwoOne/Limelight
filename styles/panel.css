@@ -1,0 +1,1067 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * The palette button and the popover (tokens.md section 5, spec 6 and 10).
+ * Every selector starts at a .vc-limelight-* class (the tray, the popover, the
+ * swatches, the picker), classes only Limelight's own components add, so nothing
+ * here can touch Discord's UI if the tray patch did not apply. Nothing in this
+ * file animates: Discord fades the popover in and out itself (and instantly
+ * under reduced motion).
+ *
+ * Type uses Discord's stacks (constraints.md): body text is --font-primary and
+ * the wordmark is --font-display. Weights go to the extremes inside them, as
+ * in the pill: tokens.md gives 600 and 700 for labels, built here as 800 against
+ * 400 captions. The two weights are the variables below, so flipping back to the
+ * mockup's 600 is one line each.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+.vc-limelight-tray {
+    --ll-accent-tint: rgba(216, 243, 90, 0.12);
+    --ll-on-accent: #11120d;
+}
+
+.vc-limelight-popover {
+    /* Surfaces (tokens.md 8.3) */
+    --ll-surface: #1a1b1e;
+    --ll-well: #111214;
+    --ll-row: rgba(255, 255, 255, 0.035);
+    --ll-row-hover: rgba(255, 255, 255, 0.06);
+    --ll-grey: #2b2d31;
+    --ll-icon-disc: #26282c;
+    --ll-live: #da373c;
+    --ll-on-live: #ffffff;
+    --ll-on-accent: #11120d;
+
+    /* Text, brightest to faintest */
+    --ll-ink: #f2f3f5;
+    --ll-ink-label: #dbdee1;
+    --ll-ink-secondary: #b5bac1;
+    --ll-ink-caption: #a3a9b2;
+    --ll-ink-muted: #949ba4;
+    --ll-ink-faint: #80848e;
+
+    /* Edges */
+    --ll-hairline: rgba(255, 255, 255, 0.06);
+    --ll-edge: rgba(255, 255, 255, 0.08);
+    --ll-field-edge: rgba(255, 255, 255, 0.12);
+    --ll-swatch-edge: rgba(255, 255, 255, 0.14);
+    --ll-chip-edge: rgba(255, 255, 255, 0.16);
+
+    /* Weight extremes */
+    --ll-weight-heavy: 800;
+    --ll-weight-light: 400;
+}
+
+/* ------------------------------------------------------------ palette button */
+
+/*
+ * The span Limelight owns around Discord's tray button (the Popout's target).
+ * The button itself keeps Discord's size and radius; Limelight adds the lime
+ * (tokens.md 5.1): a 2px lime ring always, a 12% lime fill with a lime glyph
+ * while closed, a solid lime fill with ink while open. The class is doubled so
+ * the rules outrank Discord's own hover and active colours on the same button,
+ * and 44px is the floor for the hit target (D5).
+ */
+.vc-limelight-tray {
+    display: flex;
+}
+
+.vc-limelight-tray.vc-limelight-tray button {
+    min-width: 44px;
+    min-height: 44px;
+    background: var(--ll-accent-tint);
+    box-shadow: 0 0 0 2px var(--ll-accent);
+}
+
+.vc-limelight-tray.vc-limelight-tray button:hover {
+    background: rgba(216, 243, 90, 0.2);
+}
+
+.vc-limelight-tray.vc-limelight-tray[data-open="true"] button,
+.vc-limelight-tray.vc-limelight-tray[data-open="true"] button:hover {
+    background: var(--ll-accent);
+}
+
+.vc-limelight-tray.vc-limelight-tray .vc-limelight-tray-icon {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    color: var(--ll-accent);
+}
+
+.vc-limelight-tray.vc-limelight-tray[data-open="true"] .vc-limelight-tray-icon {
+    color: var(--ll-on-accent);
+}
+
+/* D7: the lime focus ring (tokens.md 5.12), outside the always-on 2px ring. */
+.vc-limelight-tray.vc-limelight-tray button:focus-visible {
+    outline: 2px solid var(--ll-accent);
+    outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ popover */
+
+/*
+ * 420px, radius 14, surface #1a1b1e (tokens.md 5.2). Height follows the body: a
+ * 540px body that gives way when the window is short, so the popover never
+ * outgrows the room Discord measured for it (--reference-position-layer-max-height,
+ * with a viewport fallback) and the body scrolls instead.
+ */
+.vc-limelight-popover,
+.vc-limelight-popover * {
+    box-sizing: border-box;
+}
+
+.vc-limelight-popover {
+    display: flex;
+    flex-direction: column;
+    width: 420px;
+    max-height: var(--reference-position-layer-max-height, 90vh);
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--ll-surface);
+    box-shadow: 0 0 0 1px var(--ll-edge), 0 24px 64px rgba(0, 0, 0, 0.6);
+    color: var(--ll-ink);
+    color-scheme: dark;
+    font-family: var(--font-primary);
+}
+
+/* Every control in the popover starts from a plain button. :where keeps this at
+   the lowest specificity, so each control's own class rule wins by order. */
+.vc-limelight-popover :where(button) {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    appearance: none;
+}
+
+/* D7: a lime focus ring on every control (tokens.md 5.12). */
+.vc-limelight-popover :is(button, input, [role="slider"], [tabindex]):focus-visible {
+    outline: 2px solid var(--ll-accent);
+    outline-offset: 3px;
+}
+
+/* -------------------------------------------------------------------- header */
+
+/* 56px of row plus the 1px rule, as the mockup draws it (content-box), which
+   makes the default popover 644px tall: 57 + 47 + 540. */
+.vc-limelight-header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: content-box;
+    height: 56px;
+    padding: 0 6px 0 16px;
+    border-bottom: 1px solid var(--ll-hairline);
+}
+
+.vc-limelight-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vc-limelight-mark {
+    flex: none;
+    color: var(--ll-accent);
+}
+
+.vc-limelight-wordmark {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: var(--ll-weight-heavy);
+    letter-spacing: -0.3px;
+}
+
+/* 44px hit target (D5); the cross itself is 18px. */
+.vc-limelight-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    color: var(--ll-ink-secondary);
+}
+
+.vc-limelight-close:hover {
+    background: var(--ll-row);
+}
+
+/* ---------------------------------------------------------------------- tabs */
+
+.vc-limelight-tabs {
+    display: flex;
+    flex: none;
+    gap: 2px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--ll-hairline);
+}
+
+/* The 2px lime bar sits on the tab bar's rule (bottom -1px, inset 10px). */
+.vc-limelight-tab {
+    position: relative;
+    min-height: 46px;
+    padding: 0 12px;
+    color: var(--ll-ink-muted);
+    font-family: var(--font-primary);
+    font-size: 14px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-tab:hover {
+    color: var(--ll-ink-label);
+}
+
+.vc-limelight-tab[aria-selected="true"] {
+    color: var(--ll-ink);
+}
+
+.vc-limelight-tab::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    bottom: -1px;
+    left: 10px;
+    height: 2px;
+    border-radius: 2px;
+    background: transparent;
+}
+
+.vc-limelight-tab[aria-selected="true"]::after {
+    background: var(--ll-accent);
+}
+
+/* ---------------------------------------------------------------------- body */
+
+.vc-limelight-body {
+    display: flex;
+    flex: 0 1 540px;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
+    padding: 16px;
+    overflow-y: auto;
+    /* A thin scrollbar keeps the 380px swatch row inside the 388px of content. */
+    scrollbar-width: thin;
+}
+
+/* ------------------------------------------------------------------ captions */
+
+/* Caption, hint and footnote text: 13px, line-height 1.5, 400 (tokens.md 8.2). */
+.vc-limelight-caption {
+    margin: 0;
+    color: var(--ll-ink-caption);
+    font-size: 13px;
+    font-weight: var(--ll-weight-light);
+    line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------ swatches */
+
+/*
+ * A field label, a row of 44px swatches and, when the custom swatch is open,
+ * the picker under the row (tokens.md 5.9). The row is 4px apart for From,
+ * Colour and To, and 6px apart and round for the Ring.
+ */
+.vc-limelight-swatches {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vc-limelight-field-label {
+    color: var(--ll-ink-label);
+    font-size: 13px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+/* Wraps only if the room runs out (a scrollbar on a short window), so a swatch
+   is never clipped. */
+.vc-limelight-swatch-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.vc-limelight-swatches[data-round] .vc-limelight-swatch-row {
+    gap: 6px;
+}
+
+/* Unselected: a 1px inner edge. Selected: a gap in the surface colour, then a
+   2px lime ring (tokens.md 5.9). */
+.vc-limelight-swatch {
+    position: relative;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--ll-swatch);
+    box-shadow: inset 0 0 0 1px var(--ll-swatch-edge);
+}
+
+.vc-limelight-swatches[data-round] .vc-limelight-swatch {
+    border-radius: 50%;
+}
+
+.vc-limelight-swatch[data-selected="true"] {
+    box-shadow: 0 0 0 2px var(--ll-surface), 0 0 0 4px var(--ll-accent);
+}
+
+/* The focus ring sits outside the selection ring, not on top of it. */
+.vc-limelight-swatch[data-selected="true"]:focus-visible {
+    outline-offset: 6px;
+}
+
+/* The custom swatch: a conic rainbow with an inner well. Unselected it has no
+   edge; the well is the surface colour with a plus, or the custom colour. */
+.vc-limelight-swatch-custom {
+    background: conic-gradient(from 200deg, #ff5f5f, #ffd25f, #8cff6b, #5fe3ff, #6b7bff, #ff6bd5, #ff5f5f);
+    box-shadow: none;
+}
+
+.vc-limelight-swatch-custom[data-selected="true"] {
+    box-shadow: 0 0 0 2px var(--ll-surface), 0 0 0 4px var(--ll-accent);
+}
+
+.vc-limelight-swatch-inner {
+    position: absolute;
+    inset: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: var(--ll-swatch, var(--ll-surface));
+    color: var(--ll-ink);
+}
+
+.vc-limelight-swatches[data-round] .vc-limelight-swatch-inner {
+    border-radius: 50%;
+}
+
+/* ------------------------------------------------------------ colour picker */
+
+/*
+ * The picker card (tokens.md 5.9): a 136px saturation and brightness square, a
+ * hue bar, and a row of colour chip, hex field and Done. Every target is 44px
+ * or more (D5): the hue bar is a 44px strip drawing a 16px track, and the chip,
+ * field and Done are 44px tall. --ll-hue and --ll-picked are set by the
+ * component on the card.
+ */
+.vc-limelight-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--ll-well);
+    box-shadow: inset 0 0 0 1px var(--ll-hairline);
+}
+
+.vc-limelight-sv {
+    position: relative;
+    height: 136px;
+    border-radius: 8px;
+    background:
+        linear-gradient(to top, #000000, rgba(0, 0, 0, 0)),
+        linear-gradient(to right, #ffffff, var(--ll-hue));
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
+}
+
+.vc-limelight-hue {
+    position: relative;
+    height: 44px;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+}
+
+.vc-limelight-hue::before {
+    content: "";
+    position: absolute;
+    inset: 14px 0;
+    border-radius: 8px;
+    background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+}
+
+/* Thumbs: a white ring with a thin dark edge so they read on any colour. The
+   square's is 16px and the current colour; the bar's is 18px and the pure hue. */
+.vc-limelight-sv-thumb,
+.vc-limelight-hue-thumb {
+    position: absolute;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+}
+
+.vc-limelight-sv-thumb {
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    background: var(--ll-picked);
+}
+
+.vc-limelight-hue-thumb {
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    background: var(--ll-hue);
+}
+
+/* The hue strip is taller than the track it draws, so its focus ring goes on
+   the track. Later in the file than the shared ring rule, which it overrides. */
+.vc-limelight-popover .vc-limelight-hue:focus-visible {
+    outline: none;
+}
+
+.vc-limelight-popover .vc-limelight-hue:focus-visible::before {
+    outline: 2px solid var(--ll-accent);
+    outline-offset: 3px;
+}
+
+.vc-limelight-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vc-limelight-picker-chip {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: var(--ll-picked);
+    box-shadow: inset 0 0 0 1px var(--ll-chip-edge);
+}
+
+.vc-limelight-picker[data-round] .vc-limelight-picker-chip {
+    border-radius: 50%;
+}
+
+/* The field is the label, so its focus ring is drawn on the whole box and the
+   bare input inside carries none. */
+.vc-limelight-hexfield {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    height: 44px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: var(--ll-surface);
+    box-shadow: inset 0 0 0 1px var(--ll-field-edge);
+    color: var(--ll-ink-faint);
+    font-size: 14px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-hexfield:focus-within {
+    outline: 2px solid var(--ll-accent);
+    outline-offset: 3px;
+}
+
+.vc-limelight-hexfield input {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--ll-ink);
+    font-family: var(--font-primary);
+    font-size: 14px;
+    font-weight: var(--ll-weight-heavy);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    appearance: none;
+}
+
+.vc-limelight-popover .vc-limelight-hexfield input:focus-visible {
+    outline: none;
+}
+
+/* Primary button (tokens.md 5.11): lime with ink, 44px tall. Done and Choose
+   image; Choose image is a little narrower (14px of padding, not 16px). */
+.vc-limelight-done,
+.vc-limelight-choose {
+    flex: none;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: var(--ll-accent);
+    color: var(--ll-on-accent);
+    font-family: var(--font-primary);
+    font-size: 13px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-choose {
+    padding: 0 14px;
+}
+
+/* ------------------------------------------------------------------- sliders */
+
+/*
+ * Native range inputs (tokens.md 5.10): full width, the lime as accent-color,
+ * no custom track or thumb. The input is 44px tall so the whole strip is a
+ * hit target (D5); its focus ring is the shared one above. The theme editor's
+ * Angle slider uses it; the Display tab's Grid zoom slider will.
+ */
+.vc-limelight-popover input[type="range"] {
+    display: block;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    accent-color: var(--ll-accent);
+    cursor: pointer;
+}
+
+/* ------------------------------------------------------------ field headings */
+
+/* A section label (tokens.md 5.8): 12px, letter-spacing 1.6px, upper case. The
+   text is written in sentence case and shown in capitals, so a screen reader says
+   it as a word. */
+.vc-limelight-section-label {
+    color: var(--ll-ink-muted);
+    font-size: 12px;
+    font-weight: var(--ll-weight-heavy);
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+}
+
+/* A section label over its control, 10px apart (tokens.md 5.8). */
+.vc-limelight-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ------------------------------------------------------ segmented controls */
+
+/*
+ * The track and its segments (tokens.md 5.8): N equal columns 4px apart in a
+ * #111214 track with 4px of padding, each segment 44px tall (D5) with a 7px
+ * radius. The selected one is lime with ink; the rest are plain.
+ */
+.vc-limelight-segmented {
+    display: grid;
+    grid-template-columns: repeat(var(--ll-cols, 3), minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border-radius: 10px;
+    background: var(--ll-well);
+}
+
+.vc-limelight-segment {
+    min-height: 44px;
+    border-radius: 7px;
+    color: var(--ll-ink-label);
+    font-size: 13px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-segment:not([aria-pressed="true"]):hover {
+    background: var(--ll-row-hover);
+}
+
+.vc-limelight-segment[aria-pressed="true"] {
+    background: var(--ll-accent);
+    color: var(--ll-on-accent);
+}
+
+/* Disabled (the Join control under the Discord look): dimmed and inert, still
+   focusable and still showing the stored choice. */
+.vc-limelight-segmented[data-disabled] {
+    opacity: 0.45;
+}
+
+.vc-limelight-segmented[data-disabled] .vc-limelight-segment {
+    cursor: default;
+}
+
+.vc-limelight-segmented[data-disabled] .vc-limelight-segment:not([aria-pressed="true"]):hover {
+    background: transparent;
+}
+
+/* ------------------------------------------------------------------- avatars */
+
+/* 38px in a row, 46px in an editor header: Discord's picture, or a plain grey
+   disc until it has loaded. */
+.vc-limelight-avatar {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--ll-grey);
+    object-fit: cover;
+}
+
+.vc-limelight-avatar-large {
+    width: 46px;
+    height: 46px;
+}
+
+/* ---------------------------------------------------------------- people list */
+
+/* "In this call / 4", then the rows 6px apart (tokens.md 5.5). */
+.vc-limelight-people {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vc-limelight-people-label {
+    padding: 0 2px 4px;
+}
+
+/* A row is one button, at least 62px tall (tokens.md 5.5). */
+.vc-limelight-person {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 62px;
+    padding: 0 10px 0 12px;
+    border-radius: 10px;
+    background: var(--ll-row);
+    color: var(--ll-ink);
+    text-align: left;
+}
+
+.vc-limelight-person:hover {
+    background: var(--ll-row-hover);
+}
+
+.vc-limelight-person-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.vc-limelight-person-name {
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: var(--ll-weight-heavy);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The theme line: a 14px swatch of what their tile wears, then its label. */
+.vc-limelight-person-theme {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--ll-ink-caption);
+    font-size: 13px;
+    font-weight: var(--ll-weight-light);
+}
+
+.vc-limelight-theme-swatch {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.vc-limelight-live {
+    flex: none;
+    padding: 3px 7px;
+    border-radius: 5px;
+    background: var(--ll-live);
+    color: var(--ll-on-live);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+}
+
+.vc-limelight-chevron {
+    display: flex;
+    flex: none;
+    color: var(--ll-ink-faint);
+}
+
+.vc-limelight-footnote {
+    padding: 0 2px;
+    line-height: 1.55;
+}
+
+/* ------------------------------------------------------------ editor headers */
+
+.vc-limelight-editor-head {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Back is 44px tall (D5; the mockup draws 36px). */
+.vc-limelight-back {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 4px;
+    min-height: 44px;
+    padding: 0 10px 0 4px;
+    border-radius: 8px;
+    color: var(--ll-ink-secondary);
+    font-size: 14px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-back:hover {
+    background: var(--ll-row);
+}
+
+/* The person's and Everyone's header: a picture, a title over a caption, and for
+   a person the Use Everyone button. */
+.vc-limelight-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vc-limelight-identity-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.vc-limelight-title {
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: var(--ll-weight-heavy);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Secondary button (tokens.md 5.6): a 1px edge and no fill, 44px tall (D5). It
+   stays focusable when there is nothing to reset, so it says so with aria-disabled
+   and a dimmer look rather than leaving the tab order. */
+.vc-limelight-outline {
+    flex: none;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--ll-field-edge);
+    border-radius: 8px;
+    color: var(--ll-ink-label);
+    font-size: 13px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-outline[aria-disabled="true"] {
+    cursor: default;
+    opacity: 0.45;
+}
+
+.vc-limelight-everyone-icon {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--ll-icon-disc);
+    color: var(--ll-accent);
+}
+
+/* ------------------------------------------------------------- live preview */
+
+/*
+ * 92px (tokens.md 5.7): the background, the spotlight layer over it (its opacity
+ * is set from the level), a 46px disc with the ring around it, and a chip at the
+ * top left. The background and the ring colour are set inline from the theme.
+ */
+.vc-limelight-preview {
+    position: relative;
+    flex: none;
+    height: 92px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--ll-hairline);
+}
+
+.vc-limelight-preview-spot {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(58% 90% at 50% -14%, rgba(255, 246, 210, 0.24) 0%, rgba(255, 246, 210, 0) 72%);
+}
+
+.vc-limelight-preview-disc {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 46px;
+    height: 46px;
+    margin: -23px 0 0 -23px;
+    border-radius: 50%;
+    background: var(--ll-grey);
+    box-shadow: 0 0 0 2px var(--ll-preview-ring), 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.vc-limelight-preview-chip {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: rgba(12, 13, 15, 0.8);
+    color: var(--ll-ink-label);
+    font-size: 11px;
+    font-weight: var(--ll-weight-heavy);
+    letter-spacing: 0.4px;
+}
+
+/* ------------------------------------------------------------- angle slider */
+
+/* Label and value on one line, the slider under them, 6px apart (tokens.md 5.10). */
+.vc-limelight-angle {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--ll-ink-label);
+    font-size: 13px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-angle-head {
+    display: flex;
+    justify-content: space-between;
+}
+
+.vc-limelight-angle-value {
+    color: var(--ll-ink-caption);
+    font-weight: var(--ll-weight-light);
+}
+
+/* -------------------------------------------------------------- image field */
+
+/*
+ * The image row (tokens.md 5.11): a 112 by 63 thumbnail beside Choose image,
+ * Remove once there is an image, and a hint, on a #111214 card 10px in. The
+ * picture is set inline as a background image and covers the box, as it covers a
+ * tile; with no image the box shows a picture glyph.
+ */
+.vc-limelight-image-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--ll-well);
+}
+
+.vc-limelight-image-thumb {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 112px;
+    height: 63px;
+    border-radius: 7px;
+    background-color: var(--ll-surface);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    box-shadow: inset 0 0 0 1px var(--ll-hairline);
+    color: var(--ll-ink-faint);
+}
+
+.vc-limelight-image-side {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.vc-limelight-image-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Busy: the button stays in the tab order, so it says so and ignores clicks. */
+.vc-limelight-choose[aria-disabled="true"] {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.vc-limelight-image-hint {
+    color: var(--ll-ink-caption);
+    font-size: 12px;
+    font-weight: var(--ll-weight-light);
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------------------- grid zoom */
+
+/*
+ * Label row over the native slider, 8px apart (tokens.md 5.10): the section label
+ * on the left and the value ("<n>%") at 14px on the right, in the heavy weight.
+ * The slider itself is the shared 44px range input above.
+ */
+.vc-limelight-zoom {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vc-limelight-zoom-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.vc-limelight-zoom-value {
+    color: var(--ll-ink);
+    font-size: 14px;
+    font-weight: var(--ll-weight-heavy);
+    letter-spacing: 0;
+}
+
+/* ------------------------------------------------------------ switch rows */
+
+/*
+ * A switch row (tokens.md 5.11): a button at least 60px tall with the label over
+ * its hint, and the 40 by 24px track on the right. The track is lime when on and
+ * a 16% white when off; the 18px knob is ink on lime and warm white on grey. The
+ * rows sit 6px apart. The label is built in the heavy weight against the light
+ * hint, as the rest of the panel is.
+ */
+.vc-limelight-switches {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vc-limelight-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    min-height: 60px;
+    padding: 0 14px;
+    border-radius: 10px;
+    background: var(--ll-row);
+    color: var(--ll-ink);
+    text-align: left;
+}
+
+.vc-limelight-switch-row:hover {
+    background: var(--ll-row-hover);
+}
+
+.vc-limelight-switch-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.vc-limelight-switch-label {
+    font-size: 14px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-switch-hint {
+    color: var(--ll-ink-caption);
+    font-size: 12px;
+    font-weight: var(--ll-weight-light);
+}
+
+.vc-limelight-switch-track {
+    position: relative;
+    flex: none;
+    width: 40px;
+    height: 24px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.16);
+    transition: background 200ms ease;
+}
+
+.vc-limelight-switch-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #e9e7df;
+    transition: left 220ms var(--ll-ease), background 200ms ease;
+}
+
+.vc-limelight-switch-row[aria-checked="true"] .vc-limelight-switch-track {
+    background: var(--ll-accent);
+}
+
+.vc-limelight-switch-row[aria-checked="true"] .vc-limelight-switch-knob {
+    left: 19px;
+    background: var(--ll-on-accent);
+}
+
+/* ------------------------------------------------------------ settings page */
+
+/*
+ * The plugin's settings page reuses the popover's surface and control rules by
+ * carrying its class too, then drops what only the popover needs: the fixed 420px
+ * width, the height cap and the clipping (a focus ring may sit outside the card).
+ * The card is dark whatever theme Discord's settings use, as the popover is.
+ */
+.vc-limelight-popover.vc-limelight-settings {
+    width: auto;
+    max-width: 460px;
+    max-height: none;
+    overflow: visible;
+}
+
+.vc-limelight-settings-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 16px;
+}
+
+/* The destructive trigger: the secondary button in Discord's red. The confirmation
+   it opens is Discord's own, with a red confirm. */
+.vc-limelight-outline.vc-limelight-danger {
+    align-self: flex-start;
+    border-color: rgba(218, 55, 60, 0.6);
+    color: #f5898d;
+}
+
+.vc-limelight-outline.vc-limelight-danger:hover {
+    background: rgba(218, 55, 60, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vc-limelight-switch-track,
+    .vc-limelight-switch-knob {
+        transition-duration: 1ms;
+        transition-delay: 0ms;
+    }
+}

@@ -1,0 +1,190 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * The morph (tokens.md section 3, spec 5.3). Every selector starts at
+ * .limelight-tile (the class only Limelight's CallTile patch adds), and the two
+ * state classes below come from the tile patch while a change is recent
+ * (logic/live.ts), so a patch that failed to apply plays no morph at all.
+ *
+ * A person's tile is replaced when they start or stop streaming (one tile per
+ * person, so the avatar tile and the stream tile are different tiles). Nothing is
+ * moved across them: each new tile plays its own half, from where the other
+ * left off, and everything is a keyframe that runs once as the tile mounts.
+ *
+ *   ll-morph-in   the new stream tile. Its pill avatar flies from the tile
+ *                 centre (88px) to the pill front, the pill widens, the name
+ *                 group slides right, the stream layer fades in and settles.
+ *   ll-morph-out  the avatar tile that returns when the stream ends. Discord's
+ *                 own avatar flies from the pill front back to the centre, its
+ *                 decoration turns back in, the name group returns and the
+ *                 pill narrows. The delays mirror: avatar last, name first.
+ *
+ * Movement uses --ll-ease and the duration tokens (tokens.css); plain fades
+ * keep `ease`. Geometry is tokens.md 2.1 at chrome scale s: the pill avatar rests
+ * at 30s, 30s from the tile corner (pill inset 10s, avatar inset 7s, 26s wide),
+ * the live pill is 52s wider than the avatar tile's pill (avatar 26s and 9s of
+ * space replace 5s of padding: 30s; the streaming icon and its gap: 22s), and
+ * the name group moves 30s. The tile is 16:9, so its centre is 50cqw by
+ * 28.125cqw. Keyframes give only the starting state; the end state is whatever
+ * the element's own style says, so the animation always lands on the real layout.
+ */
+
+/* pill.css declares --ll-s on the pill only. The avatar and the stream layer
+   are outside it, so the tile carries it for the two morph states. cqw is
+   resolved where it is used, against this tile. */
+.limelight-tile:is(.ll-morph-in, .ll-morph-out) {
+    --ll-s: calc(clamp(0.8, sqrt(100cqw / 720px), 1.25) * var(--ll-zoom, 1));
+}
+
+/*
+ * The greyed preview (spec 5.1): Discord only lowers the preview's opacity while
+ * the viewer is not watching. 60% grayscale and 46% brightness is the treatment.
+ */
+.limelight-tile [class*="streamPreviewOpacity__"] {
+    opacity: 1;
+    filter: grayscale(0.6) brightness(0.46);
+}
+
+/*
+ * Going live: the new stream tile.
+ */
+
+/* The pill avatar: from the tile centre at 88px to the pill front, no delay. */
+.limelight-tile.ll-morph-in .ll-pill-avatar {
+    animation: ll-avatar-in var(--ll-move) var(--ll-ease);
+}
+
+@keyframes ll-avatar-in {
+    from {
+        transform:
+            translate(calc(50cqw - 30px * var(--ll-s)), calc(28.125cqw - 30px * var(--ll-s)))
+            scale(calc(88 / 26));
+    }
+}
+
+/* The ring appears on the pill over 300ms (tokens.md 2.8, 3). Only a speaking
+   streamer's pill differs from its resting shadow, so only that one changes. */
+.limelight-tile.ll-morph-in .ll-pill {
+    animation: ll-pill-ring 300ms ease;
+}
+
+@keyframes ll-pill-ring {
+    from {
+        box-shadow:
+            0 0 0 2px color-mix(in srgb, var(--ll-ring, var(--status-speaking)) 0%, transparent),
+            0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+}
+
+/* The backdrop widens from the avatar tile's width, after --ll-delay-1. A pill
+   that has shrunk to a chip (Mini) keeps its own width. */
+.limelight-tile.ll-morph-in .ll-pill:not([data-tier="mini"]) {
+    animation:
+        ll-pill-widen var(--ll-move) var(--ll-ease) var(--ll-delay-1) backwards,
+        ll-pill-ring 300ms ease;
+}
+
+@keyframes ll-pill-widen {
+    from { width: calc-size(max-content, size - 52px * var(--ll-s)); }
+    to { width: calc-size(max-content, size); }
+}
+
+/* The name group (name, status icons, activity) slides right to follow the
+   avatar, after --ll-delay-2. */
+.limelight-tile.ll-morph-in .ll-pill > :not(.ll-pill-avatar) {
+    animation: ll-lead-in var(--ll-move) var(--ll-ease) var(--ll-delay-2) backwards;
+}
+
+@keyframes ll-lead-in {
+    from { transform: translateX(calc(-30px * var(--ll-s))); }
+}
+
+/* The stream layer fades in over --ll-fade and settles from 105% over --ll-slow.
+   A content layer inside another one is left alone so the fade is not applied
+   twice. The test looks only inside the tile, so a class of Discord's own
+   above the call view can never switch the animation off. */
+.limelight-tile.ll-morph-in [class*="content__"]:not(.limelight-tile [class*="content__"] [class*="content__"]) {
+    animation:
+        ll-stream-fade var(--ll-fade) var(--ll-ease),
+        ll-stream-settle var(--ll-slow) var(--ll-ease);
+}
+
+@keyframes ll-stream-fade {
+    from { opacity: 0; }
+}
+
+@keyframes ll-stream-settle {
+    from { transform: scale(1.05); }
+}
+
+/*
+ * Ending a stream: the avatar tile that returns. The same choreography
+ * reversed, with the delays mirrored.
+ */
+
+/* Discord's own avatar returns from the pill front (26s wide) to the centre,
+   after --ll-delay-2. It is 80px, or 40px in a tile under 124px wide. */
+.limelight-tile.ll-morph-out [class*="avatarWrapper_"] {
+    animation: ll-avatar-out var(--ll-move) var(--ll-ease) var(--ll-delay-2) backwards;
+}
+
+.limelight-tile.ll-morph-out [class*="avatarWrapper_"][style*="width: 40px"] {
+    --ll-av: 40;
+}
+
+@keyframes ll-avatar-out {
+    from {
+        transform:
+            translate(calc(30px * var(--ll-s) - 50cqw), calc(30px * var(--ll-s) - 28.125cqw))
+            scale(calc(26 * var(--ll-s) / var(--ll-av, 80)));
+    }
+}
+
+/* Its decoration turns back in from -24deg and 70% (tokens.md 1.11) and fades in
+   over --ll-move (D4: the mockup's 220ms fade is built at 620ms). */
+.limelight-tile.ll-morph-out [class*="avatarDecorationContainer__"] {
+    transform-origin: center;
+    animation:
+        ll-deco-turn var(--ll-move) var(--ll-ease) var(--ll-delay-2) backwards,
+        ll-deco-fade var(--ll-move) ease var(--ll-delay-2) backwards;
+}
+
+@keyframes ll-deco-turn {
+    from { transform: rotate(-24deg) scale(0.7); }
+}
+
+@keyframes ll-deco-fade {
+    from { opacity: 0; }
+}
+
+/* The pill narrows after --ll-delay-1 and its name group returns with no delay. */
+.limelight-tile.ll-morph-out .ll-pill:not([data-tier="mini"]) {
+    animation: ll-pill-narrow var(--ll-move) var(--ll-ease) var(--ll-delay-1) backwards;
+}
+
+@keyframes ll-pill-narrow {
+    from { width: calc-size(max-content, size + 52px * var(--ll-s)); }
+    to { width: calc-size(max-content, size); }
+}
+
+.limelight-tile.ll-morph-out .ll-pill > * {
+    animation: ll-lead-out var(--ll-move) var(--ll-ease) backwards;
+}
+
+@keyframes ll-lead-out {
+    from { transform: translateX(calc(30px * var(--ll-s))); }
+}
+
+/* Reduced motion: the tokens already make the five movement durations 1ms and
+   both delays 0ms. The ring's 300ms is a literal, so it is set here. */
+@media (prefers-reduced-motion: reduce) {
+    .limelight-tile.ll-morph-in .ll-pill,
+    .limelight-tile.ll-morph-in .ll-pill:not([data-tier="mini"]) {
+        animation-duration: 1ms;
+        animation-delay: 0ms;
+    }
+}

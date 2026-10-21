@@ -1,0 +1,36 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * Chat: the theme dot (spec 8.3, tokens.md 7.3). Every chat look, join and
+ * surface rule is generated into the one stylesheet (plugin/logic/styleSheet.ts)
+ * because each depends on the settings and the Discord look must add nothing
+ * (G5); this file holds only what is static and belongs to Limelight's own
+ * element.
+ *
+ * The dot is hidden wherever it is, and shown only under the call chat scope
+ * root (the layer container's chat wrapper, anchors-panel-chat.md 4), so a text
+ * channel or a DM never shows one even if the decoration rendered there. The
+ * class is one only Limelight's own component adds.
+ */
+
+.vc-limelight-dot {
+    display: none;
+}
+
+/* 8px circle with a 1.5px soft white ring (tokens.md 7.3). The decoration's own
+   wrapper already leaves 0.25em (4px) beside the name; 3px more makes the 7px the
+   mockup draws. The fill is set inline from the person's theme. */
+[class*="layerContainer_"] > [class*="chatLayerWrapper_"] .vc-limelight-dot {
+    display: inline-block;
+    flex: none;
+    align-self: center;
+    width: 8px;
+    height: 8px;
+    margin-inline-start: 3px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.22);
+}

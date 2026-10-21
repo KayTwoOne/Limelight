@@ -1,0 +1,229 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * The maximised stream view and the filmstrip (tokens.md section 4, spec 5.5).
+ * Every selector includes .limelight-tile or .ll-pill, the classes only
+ * Limelight's patches add, so a patch that failed to apply switches this file
+ * off by itself and Discord's own filmstrip is left exactly as it was.
+ *
+ * Maximised: the pill collapses to the avatar chip while Discord's idle flag is
+ * set and the streamer is quiet (Overlay.tsx computes data-collapsed).
+ *
+ * Filmstrip: [class*="participantsWrapperAnimated__"] is Discord's filmstrip
+ * container (anchors-tiles.md 6). Its tiles are never chrome-scaled (tokens.md
+ * 6, "not scaled"), so the chip, badge and marker below are fixed pixels.
+ */
+
+/*
+ * Maximised: the pill collapses to the 40px chip (tokens.md 4.1). Its width
+ * moves over --ll-move after --ll-delay-1, the name group fades over 240ms, and
+ * interpolate-size lets the width run between max-content and a length. The
+ * ring rule in pill.css still applies, so the chip carries the ring while the
+ * streamer speaks, and speaking is what reopens it.
+ */
+.limelight-tile .ll-pill[data-focused="true"] {
+    interpolate-size: allow-keywords;
+    transition:
+        box-shadow 300ms ease,
+        background 300ms ease,
+        opacity 240ms ease,
+        width var(--ll-move) var(--ll-ease) var(--ll-delay-1);
+}
+
+.limelight-tile .ll-pill[data-focused="true"] > :not(.ll-pill-avatar) {
+    transition: opacity 240ms ease;
+}
+
+.limelight-tile .ll-pill[data-collapsed="true"] {
+    width: calc(40px * var(--ll-s));
+}
+
+.limelight-tile .ll-pill[data-collapsed="true"] > :not(.ll-pill-avatar) {
+    opacity: 0;
+}
+
+/*
+ * Filmstrip radius: Discord's own 8px. The mockup's filmstrip does not take the
+ * grid's corner setting (tokens.md 4.3).
+ */
+[class*="participantsWrapperAnimated__"] .limelight-tile {
+    --custom-base-tile-border-radius: 8px;
+}
+
+/*
+ * Avatar chip (tokens.md 4.3): 30px at 6px, 22px avatar inside, on rgba(12, 13,
+ * 15, 0.86) with no blur. A person who is not live has no pill, as in every
+ * Mini tile (pill.css), so only the geometry is set for them and nothing shows.
+ */
+[class*="participantsWrapperAnimated__"] .limelight-tile .ll-pill[data-live] {
+    top: 6px;
+    inset-inline-start: 6px;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 15px;
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile .ll-pill[data-live="true"] {
+    background: rgba(12, 13, 15, 0.86);
+    backdrop-filter: none;
+    box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--ll-ring, var(--status-speaking)) 0%, transparent),
+        0 0 0 transparent;
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile .ll-pill[data-live="true"][data-speaking="true"] {
+    box-shadow:
+        0 0 0 2px var(--ll-ring, var(--status-speaking)),
+        0 0 10px color-mix(in srgb, var(--ll-ring, var(--status-speaking)) 50%, transparent);
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile .ll-pill-avatar {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+}
+
+/* An avatar tile's own avatar is 46px here, not Discord's 80px (tokens.md 4.3). */
+[class*="participantsWrapperAnimated__"] .limelight-tile [class*="avatarWrapper_"] {
+    transform: scale(0.575);
+}
+
+/*
+ * The name as a tooltip (spec 5.5) has no rule here, on purpose. It is a title
+ * on the tile itself (Overlay.tsx), so no layer is placed over the tile and
+ * every Discord button, Watch Stream and "watch another stream" included, keeps
+ * its own hover and click.
+ */
+
+/*
+ * LIVE badge (tokens.md 4.3). Limelight draws it on every live tile (Overlay.tsx)
+ * and it shows only in the filmstrip, where Discord's own badge is hidden so
+ * there is never a pair.
+ */
+.limelight-tile .ll-strip-live {
+    display: none;
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile .ll-strip-live {
+    position: absolute;
+    top: 7px;
+    inset-inline-end: 7px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 16px;
+    padding: 0 5px;
+    border-radius: 4px;
+    background: #da373c;
+    color: #ffffff;
+    font-family: var(--font-primary);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    line-height: 1;
+    pointer-events: none;
+    animation: ll-strip-fade 260ms ease;
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile [class*="liveIndicator__"] {
+    display: none;
+}
+
+/*
+ * Stream layer (tokens.md 4.3): a live person's tile is greyed (D1: 60% grayscale,
+ * 46% brightness) unless it is the one on the big screen, which is in full colour
+ * (brightness 0.95). The selected tile is the only one holding Discord's
+ * selectedScreen__ element.
+ *
+ * The filter goes on the picture, never on the content layer that holds
+ * Discord's buttons. A filter makes its element a stacking context, and
+ * Discord's Watch Stream and "watch another stream" buttons (cta__, z-index 1)
+ * are children of that layer: filtering the layer would trap them below
+ * Discord's own overlay and below the pill. So:
+ *
+ * - A tile with a preview (not watching, and the selected one) has the preview
+ *   picture as the layer's direct absoluteFill__ child, a sibling of the
+ *   buttons. That is what is filtered. Not watching, Discord's own greyed
+ *   preview rule (morph.css) already applies the same filter to it.
+ * - A tile that is playing (watching, not selected) has no buttons: Discord
+ *   renders only the video layer and a status overlay, so the layer itself is
+ *   filtered. The test for an outer layer looks only inside the tile.
+ *
+ * The chip, the badge and the marker are outside both, so they keep their colour.
+ */
+[class*="participantsWrapperAnimated__"] .limelight-tile.limelight-live [class*="streamPreview__"] > [class*="absoluteFill__"],
+[class*="participantsWrapperAnimated__"] .limelight-tile.limelight-live [class*="content__"]:not([class*="streamPreview__"]):not(.limelight-tile [class*="content__"] [class*="content__"]) {
+    transition: filter 480ms ease;
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile.limelight-live:not(:has([class*="selectedScreen__"])) [class*="streamPreview__"] > [class*="absoluteFill__"],
+[class*="participantsWrapperAnimated__"] .limelight-tile.limelight-live:not(:has([class*="selectedScreen__"])) [class*="content__"]:not([class*="streamPreview__"]):not(.limelight-tile [class*="content__"] [class*="content__"]) {
+    filter: grayscale(0.6) brightness(0.46);
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile.limelight-live:has([class*="selectedScreen__"]) [class*="streamPreview__"] > [class*="absoluteFill__"] {
+    filter: brightness(0.95);
+}
+
+/*
+ * Eye marker (tokens.md 4.3): Discord's scrim and icon on the selected tile are
+ * replaced by a 24px chip at 6px, bottom right, holding a 14px eye. The chip and
+ * the eye are the scrim's two pseudo-elements; the eye is a mask so it takes the
+ * mockup's #f2f3f5 stroke at 2.2.
+ */
+[class*="participantsWrapperAnimated__"] .limelight-tile [class*="selectedScreen__"] {
+    background: none;
+    animation: ll-strip-fade 260ms ease;
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile [class*="selectedScreen__"] [class*="selectedIcon__"] {
+    display: none;
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile [class*="selectedScreen__"]::before {
+    content: "";
+    position: absolute;
+    inset-inline-end: 6px;
+    bottom: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    background: rgba(12, 13, 15, 0.86);
+}
+
+[class*="participantsWrapperAnimated__"] .limelight-tile [class*="selectedScreen__"]::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: 11px;
+    bottom: 11px;
+    width: 14px;
+    height: 14px;
+    background: #f2f3f5;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+@keyframes ll-strip-fade {
+    from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .limelight-tile .ll-pill[data-focused="true"],
+    .limelight-tile .ll-pill[data-focused="true"] > :not(.ll-pill-avatar),
+    [class*="participantsWrapperAnimated__"] .limelight-tile.limelight-live [class*="streamPreview__"] > [class*="absoluteFill__"],
+    [class*="participantsWrapperAnimated__"] .limelight-tile.limelight-live [class*="content__"]:not([class*="streamPreview__"]):not(.limelight-tile [class*="content__"] [class*="content__"]) {
+        transition-duration: 1ms;
+        transition-delay: 0ms;
+    }
+
+    [class*="participantsWrapperAnimated__"] .limelight-tile .ll-strip-live,
+    [class*="participantsWrapperAnimated__"] .limelight-tile [class*="selectedScreen__"] {
+        animation-duration: 1ms;
+        animation-delay: 0ms;
+    }
+}

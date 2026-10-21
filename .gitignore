@@ -1,0 +1,7 @@
+# Limelight plugin source only; a Vencord or Equicord checkout builds it
+node_modules/
+dist/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
