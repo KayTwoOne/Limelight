@@ -4,7 +4,7 @@
 
 **A customisable voice call grid for Discord.**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-A8C43A?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.1-A8C43A?style=flat-square)](CHANGELOG.md)
 [![Vencord](https://img.shields.io/badge/vencord%20%7C%20equicord-userplugin-9c85ef?style=flat-square)](https://vencord.dev)
 [![Discord](https://img.shields.io/badge/discord-stable-57F287?style=flat-square)](#install)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](LICENSE)

@@ -100,7 +100,16 @@ export const patches = [
         // and its upload area and chat show the picked channel. Grouped: the
         // three apply together or not at all, so the title, the drop target and
         // the composer can never point at different channels.
-        find: ".CallChatSidebar,maxWidth:",
+        //
+        // Found by its sidebar type together with its floating layer, in either
+        // order. In October 2026 Discord added another screen that reuses the
+        // CallChatSidebar type without a floating layer; the old plain-text find
+        // matched it too, and whichever loaded first used the patch up, so the
+        // picker vanished. all: true means a future lookalike can never use it up
+        // again: every module that matches is tried, and in any module where the
+        // three replacements do not all match, the group leaves it untouched.
+        find: /\.CallChatSidebar,[^{}]{0,80}?floatingLayer:|floatingLayer:[^{}]{0,80}?\.CallChatSidebar\b/,
+        all: true,
         group: true,
         replacement: [
             {
@@ -108,7 +117,8 @@ export const patches = [
                 replace: "$self.renderCallChatUpload($1,{channel:$2,draftType:$3})"
             },
             {
-                match: /(?<=let\{channel:(\i),guild:\i,maxWidth:\i\}=\i.+?)children:\[\(0,\i\.jsx\)\((\i\.\i)\.ChannelIcon,\{icon:(\i\.ChatIcon),"aria-label":([^{}]+?)\}\),\(0,\i\.jsx\)\(\i\.\i\.Title,\{children:(\i)\}\)\]/,
+                // The channel comes from the component's props, wherever it sits in them
+                match: /(?<=let\{(?:[^{}]*?,)?channel:(\i)[^{}]*?\}=\i.+?)children:\[\(0,\i\.jsx\)\((\i\.\i)\.ChannelIcon,\{icon:(\i\.ChatIcon),"aria-label":([^{}]+?)\}\),\(0,\i\.jsx\)\(\i\.\i\.Title,\{children:(\i)\}\)\]/,
                 replace: "children:$self.renderCallChatHeading({Header:$2,icon:$3,iconLabel:$4,name:$5,channel:$1})"
             },
             {

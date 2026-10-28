@@ -10,15 +10,33 @@
 // the log, once, when a hook that must run while the call view shows never did.
 
 import { Logger } from "@utils/Logger";
-import { SelectedChannelStore } from "@webpack/common";
+import { ChannelStore, SelectedChannelStore } from "@webpack/common";
 
 import { checkHooks, createHookMonitor, markSeen } from "../logic/hooks";
-import { CALL } from "../logic/styleSheet";
+import { CALL, CHAT_ROOT } from "../logic/styleSheet";
 import { HOOK } from "../patches";
+import { getConfig } from "../store/configStore";
+import { limelightToast } from "./toast";
 
 const logger = new Logger("Limelight");
 const monitor = createHookMonitor();
+const chatMonitor = createHookMonitor();
 const WATCH_MS = 2000;
+
+// A voice channel's chat on screen: the message area inside the call chat's own
+// layer, while the channel in view is a server voice channel (a Stage channel
+// has its own sidebar, which Limelight leaves alone). The picker's patch must
+// have run by then; if it has not, Discord has changed that code and the
+// person is told once, rather than finding the picker gone with no reason.
+const CHAT_SURFACE = `${CHAT_ROOT} section[class*="chatContent_"]`;
+const GUILD_VOICE = 2;
+
+function callChatLive(): boolean {
+    if (!getConfig().chat.channelPicker) return false;
+    const channelId = SelectedChannelStore.getChannelId();
+    const channel = channelId ? ChannelStore.getChannel(channelId) : null;
+    return channel?.type === GUILD_VOICE && document.querySelector(CHAT_SURFACE) !== null;
+}
 
 // The hooks every call view must run, and what each one switches off when it
 // does not. The others only run on interaction (watch, badge, tray) or on a screen
@@ -64,6 +82,10 @@ function tick(): void {
         const surfaceLive = Boolean(SelectedChannelStore.getVoiceChannelId()) && document.querySelector(TILE_SURFACE) !== null;
         for (const name of checkHooks(monitor, surfaceLive, Date.now(), EXPECTED)) {
             logger.error(`Hook "${name}" never ran while the call view was showing, so ${FEATURE_OFF[name] ?? "part of Limelight is off"}. Discord may have changed this part of its code.`);
+        }
+        if (checkHooks(chatMonitor, callChatLive(), Date.now(), [HOOK.chat]).length > 0) {
+            logger.error("The call chat patch never ran while a voice channel's chat was open, so the channel picker is off. Discord may have changed this part of its code.");
+            limelightToast("Limelight's channel picker couldn't attach to the call chat. Discord may have changed it.", "failure");
         }
     } catch (error) {
         // Log once and stop: a check that throws will throw on every tick.

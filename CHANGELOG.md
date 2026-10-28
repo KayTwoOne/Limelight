@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.1 - 2026-10-28
+
+- **The channel picker is back.** A Discord update added another screen that
+  shares the call chat's sidebar, and Limelight attached to that one instead, so
+  the picker disappeared from the call chat's title. Limelight now finds the call
+  chat by its own floating layer and checks every match, so a lookalike can't take
+  its place again.
+- If the picker ever can't attach after a Discord update, you get a toast saying
+  so instead of it quietly going missing.
+
 ## 1.0.0 - 2026-10-21
 
 The first release.
