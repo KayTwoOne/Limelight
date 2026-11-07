@@ -11,7 +11,7 @@
 // DisplayControls, so there is one set of controls and one source of truth: the
 // config store. The settings page adds Reset all Limelight themes.
 
-import { Alerts, Button, React } from "@webpack/common";
+import { Alerts, React } from "@webpack/common";
 
 import { type Corners, defaultConfig, type Spacing } from "../logic/config";
 import { flushConfig, updateConfig, useLimelightConfig } from "../store/configStore";
@@ -108,7 +108,7 @@ function confirmReset(): void {
     Alerts.show({
         title: "Reset all Limelight themes?",
         body: "Every person's theme, Everyone, the chat look and your Display settings go back to Discord's own, and the background images Limelight stored are deleted. This cannot be undone.",
-        confirmColor: Button.Colors.RED,
+        confirmColor: "danger",
         confirmText: "Reset",
         cancelText: "Cancel",
         onConfirm: resetEverything

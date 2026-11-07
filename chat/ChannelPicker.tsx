@@ -405,9 +405,13 @@ interface UploadProps {
     props: { channel: ChannelRecord; [key: string]: unknown; };
 }
 
+// Keyed by the channel on show. Discord's drop zone sets up its drop handling for
+// the channel it first gets and keeps it, so without a fresh drop zone per channel
+// a file dropped on a picked channel went to the call's own chat.
 function PickerUpload({ Upload, props }: UploadProps) {
     const target = useCallChatTarget(props.channel);
-    return <Upload {...props} channel={target ?? props.channel} />;
+    const shown = target ?? props.channel;
+    return <Upload key={shown.id} {...props} channel={shown} />;
 }
 
 export function callChatUpload(Upload: ComponentType<any>, props: UploadProps["props"]): ReactNode {

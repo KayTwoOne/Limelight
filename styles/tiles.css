@@ -35,7 +35,7 @@
  * are 16:9, so the height term is 56.25cqw. Only the grid is spaced: not the
  * filmstrip, not the maximised tile.
  */
-.limelight-slot:not([class*="focusedVideo_"]):not([class*="participantsWrapperAnimated__"] .limelight-slot) .limelight-tile {
+.limelight-slot:not([class*="focusedVideo_"]):not(:is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-slot) .limelight-tile {
     transform: scale(
         calc((100cqw + var(--ll-gap-delta, 0px)) / 100cqw),
         calc((56.25cqw + var(--ll-gap-delta, 0px)) / 56.25cqw)
@@ -48,7 +48,7 @@
  * the opacity their theme gives --ll-spot. The avatar is lifted above it. A
  * stream tile has no background_ child, and live tiles are forced to 0 anyway.
  */
-.limelight-tile [class*="content__"] > [class*="background_"]::after {
+.limelight-tile :is([class^="content_"],[class*=" content_"]) > [class*="background_"]::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -58,7 +58,7 @@
     transition: opacity 320ms ease;
 }
 
-.limelight-tile.limelight-live [class*="content__"] > [class*="background_"]::after {
+.limelight-tile.limelight-live :is([class^="content_"],[class*=" content_"]) > [class*="background_"]::after {
     opacity: 0;
 }
 
@@ -74,14 +74,14 @@
  * The inline box-shadow Discord writes needs !important to lose.
  */
 @media not (forced-colors: active) {
-    .limelight-tile.limelight-live [class*="border__"]:not([class*="voiceChannelEffect__"]) {
+    .limelight-tile.limelight-live :is([class^="border_"],[class*=" border_"]):not(:is([class^="voiceChannelEffect_"],[class*=" voiceChannelEffect_"])) {
         box-shadow: none !important;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .limelight-tile,
-    .limelight-tile [class*="content__"] > [class*="background_"]::after {
+    .limelight-tile :is([class^="content_"],[class*=" content_"]) > [class*="background_"]::after {
         transition-duration: 1ms;
         transition-delay: 0ms;
     }

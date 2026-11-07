@@ -51,8 +51,11 @@ const FEATURE_OFF: Record<string, string> = {
 const failed = new Set<string>();
 let timer: ReturnType<typeof setInterval> | null = null;
 
+// Both monitors hear every hook: the call chat has its own monitor only so its
+// surface timing is kept apart from the call view's
 export function markHook(name: string): void {
     markSeen(monitor, name);
+    markSeen(chatMonitor, name);
 }
 
 // Marks the hook seen, runs fn, and on any error logs it once per hook and

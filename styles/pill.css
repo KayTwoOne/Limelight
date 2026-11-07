@@ -22,7 +22,7 @@
 /* Discord's own name plate and activity button are hidden only on a tile that
    has a pill, so the name is never drawn twice and nothing is lost if the pill
    did not render. The action buttons stay. */
-.limelight-tile:has(.ll-pill) [class*="overlayIconsContainer__"] {
+.limelight-tile:has(.ll-pill) :is([class^="overlayIconsContainer_"],[class*=" overlayIconsContainer_"]) {
     display: none;
 }
 
@@ -165,7 +165,7 @@
 
 /* Discord's "video disabled" status sits top-left, where the pill goes. It is
    always in the tree and empty unless it has something to say. */
-.limelight-tile:has([class*="overlayTop__"]:not(:empty)) .ll-pill {
+.limelight-tile:has(:is([class^="overlayTop_"],[class*=" overlayTop_"]):not(:empty)) .ll-pill {
     top: 50px;
 }
 

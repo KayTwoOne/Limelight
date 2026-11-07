@@ -133,7 +133,7 @@ export function Pill(props: PillProps) {
     React.useLayoutEffect(() => {
         const tile = ref.current?.closest<HTMLElement>(".limelight-tile");
         if (!tile || !tooltip || tile.hasAttribute("title")) return;
-        if (!tile.closest('[class*="participantsWrapperAnimated__"]')) return;
+        if (!tile.closest(':is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"])')) return;
         tile.title = tooltip;
         return () => {
             if (tile.title === tooltip) tile.removeAttribute("title");

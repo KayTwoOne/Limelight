@@ -12,9 +12,9 @@ import { type Background, DISCORD_GREEN, type LimelightConfig, PRESET_GREY } fro
 import { lightestOf, scrimAlpha } from "./scrim";
 import { backgroundCss, CORNER_PX, FOLLOW_WASH_ALPHA, FOLLOW_WASH_HEX, SPOTLIGHT_OPACITY, stageCss, stageLightest, stagePeak } from "./theme";
 
-export const CALL = "[class*=\"callContainer_\"]:not([class*=\"callContainer__\"])";
+export const CALL = ":is([class^=\"callContainer_\"],[class*=\" callContainer_\"])";
 export const TILE = ".limelight-tile";
-export const TILE_BG = "[class*=\"content__\"] > [class*=\"background_\"]";
+export const TILE_BG = ":is([class^=\"content_\"],[class*=\" content_\"]) > [class*=\"background_\"]";
 export const GAP_DELTA_PX = { tight: 5, normal: 0, airy: -10 } as const;
 
 // The pre-call screen (shown before you join a voice channel). PRECALL is the

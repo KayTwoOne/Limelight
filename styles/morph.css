@@ -44,7 +44,7 @@
  * The greyed preview (spec 5.1): Discord only lowers the preview's opacity while
  * the viewer is not watching. 60% grayscale and 46% brightness is the treatment.
  */
-.limelight-tile [class*="streamPreviewOpacity__"] {
+.limelight-tile :is([class^="streamPreviewOpacity_"],[class*=" streamPreviewOpacity_"]) {
     opacity: 1;
     filter: grayscale(0.6) brightness(0.46);
 }
@@ -107,7 +107,7 @@
    A content layer inside another one is left alone so the fade is not applied
    twice. The test looks only inside the tile, so a class of Discord's own
    above the call view can never switch the animation off. */
-.limelight-tile.ll-morph-in [class*="content__"]:not(.limelight-tile [class*="content__"] [class*="content__"]) {
+.limelight-tile.ll-morph-in :is([class^="content_"],[class*=" content_"]):not(.limelight-tile :is([class^="content_"],[class*=" content_"]) :is([class^="content_"],[class*=" content_"])) {
     animation:
         ll-stream-fade var(--ll-fade) var(--ll-ease),
         ll-stream-settle var(--ll-slow) var(--ll-ease);
@@ -146,7 +146,7 @@
 
 /* Its decoration turns back in from -24deg and 70% (tokens.md 1.11) and fades in
    over --ll-move (D4: the mockup's 220ms fade is built at 620ms). */
-.limelight-tile.ll-morph-out [class*="avatarDecorationContainer__"] {
+.limelight-tile.ll-morph-out :is([class^="avatarDecorationContainer_"],[class*=" avatarDecorationContainer_"]) {
     transform-origin: center;
     animation:
         ll-deco-turn var(--ll-move) var(--ll-ease) var(--ll-delay-2) backwards,

@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.2 - 2026-11-07
+
+- **Themes paint again.** Discord's new client build changed how its class names
+  are written, and Limelight's tile backgrounds stopped matching, so no theme
+  showed on anyone. Limelight now matches Discord's classes by the name they start
+  with, whatever the hash after it looks like. The filmstrip, the go-live morph and
+  the pill's placement were hit by the same change and are fixed too.
+- **Builds on the latest Equicord**, which removed the `Button` export the reset
+  confirmation used.
+- **Dropping a file onto a picked channel uploads it there**, not to the call's own
+  chat.
+- The "channel picker couldn't attach" toast no longer shows when the picker is
+  working fine.
+
 ## 1.0.1 - 2026-10-28
 
 - **The channel picker is back.** A Discord update added another screen that
