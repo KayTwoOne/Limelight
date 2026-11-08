@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 - 2026-11-08
+
+- **Hide invite prompts** (Display tab). Takes away the Invite to Voice row under
+  your voice channel, and the empty tile with Invite to Voice and Choose Activity
+  that Discord adds when you're alone in a call, so your own tile fills the stage.
+  Off by default.
+
 ## 1.0.2 - 2026-11-07
 
 - **Themes paint again.** Discord's new client build changed how its class names

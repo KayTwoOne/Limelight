@@ -4,7 +4,7 @@
 
 **A customisable voice call grid for Discord.**
 
-[![Version](https://img.shields.io/badge/version-1.0.2-A8C43A?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-A8C43A?style=flat-square)](CHANGELOG.md)
 [![Vencord](https://img.shields.io/badge/vencord%20%7C%20equicord-userplugin-9c85ef?style=flat-square)](https://vencord.dev)
 [![Discord](https://img.shields.io/badge/discord-stable-57F287?style=flat-square)](#install)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](LICENSE)
@@ -93,7 +93,7 @@ panel with five tabs:
 | **Everyone** | The theme for anyone without one of their own. |
 | **Chat** | How the call chat looks, how it joins the grid, theme dots and the channel picker. |
 | **Pre-call** | The look of the screen you see before joining a voice channel. |
-| **Display** | Grid zoom, tile corners and spacing, and two switches (below). |
+| **Display** | Grid zoom, tile corners and spacing, and three switches (below). |
 
 Every change applies live to the real tiles and saves straight away. Escape, the close
 button or the palette button closes it.
@@ -107,6 +107,7 @@ button or the palette button closes it.
 | Tile spacing | Tight, Normal, Airy | Normal |
 | Disable all user themes | On or off: one calm dark grey for every tile | Off |
 | Auto maximise livestream upon joining | On or off | Off |
+| Hide invite prompts | On or off: no Invite to Voice row under your voice channel, and no empty tile when you're alone in a call | Off |
 
 The same controls are on Limelight's settings page, along with **Reset all Limelight
 themes**.

@@ -8,7 +8,7 @@
 // them; tools/verify-patches.mjs checks each against Discord's real code on
 // every build. Finds are literals that minification cannot rename.
 
-export const HOOK = { tiles: "tiles", fold: "fold", watch: "watch", badge: "badge", tray: "tray", precall: "precall", chat: "chat", mention: "mention" } as const;
+export const HOOK = { tiles: "tiles", fold: "fold", watch: "watch", badge: "badge", tray: "tray", precall: "precall", chat: "chat", mention: "mention", invite: "invite", alone: "alone" } as const;
 
 export const patches = [
     {
@@ -137,6 +137,32 @@ export const patches = [
         replacement: {
             match: /(?<=react\((\i),\i,\i\)\{let \i=\i\.\i\.getChannel\(\i\.channelId\),\i=\i\.noStyleAndInteraction\?void 0:\i=>\{)/,
             replace: "if($self.openMentionInCallChat($1))return;"
+        }
+    },
+    {
+        // The Invite to Voice row under the people in your voice channel. It goes
+        // through Limelight's gate, which draws Discord's own row unless Hide invite
+        // prompts is on. The key stays Discord's. The same text is the row's own
+        // popoutKey in another module, so the find includes the closing brace of the
+        // props before it, which only the list has.
+        find: "},\"voice-invite-suggestions-button\")",
+        replacement: {
+            match: /\(0,(\i\.jsx)\)\((\i\.\i),\{(channel:\i,onClose:\i)\}(?=,"voice-invite-suggestions-button"\))/,
+            replace: "(0,$1)($self.InvitePromptRow,{Original:$2,$3}"
+        }
+    },
+    {
+        // The tile Discord adds beside yours when you're the only one in a server
+        // voice channel (Invite to Voice and Choose Activity). One more term on the
+        // condition that adds it, so with Hide invite prompts on it never reaches the
+        // grid and your tile is laid out alone. The term is read into a constant at
+        // the start of the statement: the component has no early return, so the hook
+        // runs on every render. The group call's activity tile is left alone. One
+        // replacement, so the constant is never used without being declared.
+        find: "\"empty-tile\"",
+        replacement: {
+            match: /(?<=;)(null!=\i&&!\i&&!\i\.isGuildStageVoice\(\)&&\(.+?:\i&&1===\i&&\i)(?=&&\i\.push\()/,
+            replace: "const limelightHideAlone=$self.useHideInvitePrompts();$1&&!limelightHideAlone"
         }
     }
 ];

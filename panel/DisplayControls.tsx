@@ -5,7 +5,7 @@
  */
 
 // The Display settings (spec 6.7, tokens.md 5.10, 5.11): grid zoom, tile corners,
-// tile spacing and the two switches. Every control writes config.display through
+// tile spacing and the switches. Every control writes config.display through
 // updateConfig, so the call grid follows at once and the change is saved a moment
 // later. The Display tab and the plugin's settings page (spec 9.6) both render
 // DisplayControls, so there is one set of controls and one source of truth: the
@@ -88,6 +88,13 @@ export function DisplayControls() {
                     hint="Watch Stream goes straight to fullscreen"
                     checked={display.autoMaximise}
                     onChange={next => updateConfig(draft => { draft.display.autoMaximise = next; })}
+                />
+                <SwitchRow
+                    label="Hide invite prompts"
+                    hint="Invite to Voice, and the empty tile when you're alone"
+                    tag="New"
+                    checked={display.hideInvitePrompts}
+                    onChange={next => updateConfig(draft => { draft.display.hideInvitePrompts = next; })}
                 />
             </div>
         </>

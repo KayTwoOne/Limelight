@@ -13,9 +13,11 @@ interface SwitchRowProps {
     hint: string;
     checked: boolean;
     onChange(next: boolean): void;
+    /** A short tag after the label, such as "New" for a recent switch */
+    tag?: string;
 }
 
-export function SwitchRow({ label, hint, checked, onChange }: SwitchRowProps) {
+export function SwitchRow({ label, hint, checked, onChange, tag }: SwitchRowProps) {
     return (
         <button
             type="button"
@@ -25,7 +27,10 @@ export function SwitchRow({ label, hint, checked, onChange }: SwitchRowProps) {
             onClick={() => onChange(!checked)}
         >
             <span className="vc-limelight-switch-text">
-                <span className="vc-limelight-switch-label">{label}</span>
+                <span className="vc-limelight-switch-label">
+                    {label}
+                    {tag && <span className="vc-limelight-tag">{tag}</span>}
+                </span>
                 <span className="vc-limelight-switch-hint">{hint}</span>
             </span>
             <span className="vc-limelight-switch-track" aria-hidden="true">

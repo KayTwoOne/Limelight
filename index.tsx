@@ -23,6 +23,7 @@ import { paletteElement } from "./panel/PaletteButton";
 import { HOOK, patches } from "./patches";
 import { preCallBackground, preCallButtons } from "./precall/PreCall";
 import { guard, startWatchdog, stopWatchdog } from "./runtime/hookApi";
+import { useHideInvitePrompts } from "./runtime/invitePrompts";
 import { startSheet, stopSheet } from "./runtime/sheet";
 import { flushConfig, loadConfig } from "./store/configStore";
 import { startImages, stopImages } from "./store/imageStore";
@@ -165,6 +166,21 @@ export default definePlugin({
 
     renderCallChatBody(Chat: ComponentType<any>, props: { channel: ChannelRecord; guild: unknown; }, types: Record<string, object>) {
         return callChatBody(Chat, props, types);
+    },
+
+    // Stands in for the Invite to Voice row under your voice channel: nothing while
+    // Hide invite prompts is on, Discord's own row otherwise. If reading the switch
+    // throws, the row shows.
+    InvitePromptRow({ Original, ...rest }: OverlayProps) {
+        const hide = guard(HOOK.invite, false, useHideInvitePrompts);
+        return hide ? null : <Original {...rest} />;
+    },
+
+    // True while Hide invite prompts is on. A hook: the call grid calls it on every
+    // render, so flipping the switch lays the grid out again. Any failure answers
+    // false, which keeps Discord's tile.
+    useHideInvitePrompts() {
+        return guard(HOOK.alone, false, useHideInvitePrompts);
     },
 
     // True when a channel link clicked inside the call chat was opened there, so
