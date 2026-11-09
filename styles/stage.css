@@ -23,11 +23,18 @@ body.limelight-folded {
  * menus, and the ping icon's hover stay Discord's. Discord measures this section
  * (--custom-app-panels-height), so the server list stops above the strip itself.
  * Nothing sets overflow, so an avatar decoration is never clipped.
+ *
+ * Every rule here ends its section with :not(#ll-strip-guard), which matches the
+ * section (nothing has that id) and gives the selector an ID's strength. Other
+ * plugins pin this section with !important too (CollapsibleUI: left: 0; right: 0;
+ * width: auto, from up to four attributes), and two !important rules are settled by
+ * specificity, so no class- or attribute-based rule can outrank the strip's.
  */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) {
     position: fixed !important;
     inset: auto auto 8px var(--ll-strip-left) !important;
     width: 56px !important;
+    min-width: 56px !important;
     max-width: 56px !important;
     display: flex;
     flex-direction: column;
@@ -36,8 +43,8 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
 }
 
 /* Everything in the section but the voice panel and the account row */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) > :not(:has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"]), :is([class^="accountPopoutButtonWrapper_"], [class*=" accountPopoutButtonWrapper_"]))),
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="wrapper_"], [class*=" wrapper_"]):has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"])) > :not(:has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"]))) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) > :not(:has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"]), :is([class^="accountPopoutButtonWrapper_"], [class*=" accountPopoutButtonWrapper_"]))),
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="wrapper_"], [class*=" wrapper_"]):has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"])) > :not(:has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"]))) {
     display: none !important;
 }
 
@@ -45,7 +52,7 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
    keeps Discord's panel colour, border and corners, and its two parts draw nothing
    of their own. The voice panel is the top 40px, holding only the ping icon, above
    the nameplate that rises under it. */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="container_"], [class*=" container_"]):has(> :is([class^="connection_"], [class*=" connection_"])) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="container_"], [class*=" container_"]):has(> :is([class^="connection_"], [class*=" connection_"])) {
     display: grid;
     place-items: center;
     position: relative;
@@ -54,31 +61,31 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
     padding: 0;
 }
 
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="connection_"], [class*=" connection_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="connection_"], [class*=" connection_"]) {
     justify-content: center;
 }
 
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="inner_"], [class*=" inner_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="inner_"], [class*=" inner_"]) {
     flex: none;
 }
 
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="ping_"], [class*=" ping_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="ping_"], [class*=" ping_"]) {
     margin: 0;
 }
 
 /* "Voice Connected" and the channel, Krisp and disconnect, the four action buttons
    and anyone listening along: the call's own bar has what matters */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="labelWrapper_"], [class*=" labelWrapper_"]),
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="voiceButtonsContainer_"], [class*=" voiceButtonsContainer_"]),
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="actionButtons_"], [class*=" actionButtons_"]),
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="voiceUsers_"], [class*=" voiceUsers_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="labelWrapper_"], [class*=" labelWrapper_"]),
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="voiceButtonsContainer_"], [class*=" voiceButtonsContainer_"]),
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="actionButtons_"], [class*=" actionButtons_"]),
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="voiceUsers_"], [class*=" voiceUsers_"]) {
     display: none !important;
 }
 
 /* The account row, stood on its end below it: 196px, the Trimmed length. Your
    avatar at the top, 2px down, and mute, deafen and settings from the foot of the
    nameplate upwards (Kaylum, 9 Nov) */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="container_"], [class*=" container_"]):has(> :is([class^="buttons_"], [class*=" buttons_"])) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="container_"], [class*=" container_"]):has(> :is([class^="buttons_"], [class*=" buttons_"])) {
     position: relative;
     flex-direction: column !important;
     justify-content: space-between;
@@ -89,7 +96,7 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
 }
 
 /* The avatar button: just the avatar now, opening your profile as it always has */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="accountPopoutButtonWrapper_"], [class*=" accountPopoutButtonWrapper_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="accountPopoutButtonWrapper_"], [class*=" accountPopoutButtonWrapper_"]) {
     flex: none;
     justify-content: center;
     margin: 0 !important;
@@ -97,11 +104,11 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
 }
 
 /* Your name and handle: read top to bottom they'd look wrong (Kaylum, 9 Nov) */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="nameTag_"], [class*=" nameTag_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="nameTag_"], [class*=" nameTag_"]) {
     display: none !important;
 }
 
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="buttons_"], [class*=" buttons_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="buttons_"], [class*=" buttons_"]) {
     flex-direction: column;
     align-items: center;
     gap: 4px;
@@ -109,7 +116,7 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
 
 /* Discord's three are always the last: mute, deafen, settings. Anything another
    plugin puts before them (a game button, Kaylum, 9 Nov) goes. */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="buttons_"], [class*=" buttons_"]) > :not(:nth-last-child(-n + 3)) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="buttons_"], [class*=" buttons_"]) > :not(:nth-last-child(-n + 3)) {
     display: none !important;
 }
 
@@ -118,7 +125,7 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
    wash rises to the top of the strip, fading out under the ping icon as Discord's
    own section does under Voice Connected. It runs the whole strip: 40px above the
    account row it belongs to. Its image or video turns with it. */
-body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="fitInAccount_"], [class*=" fitInAccount_"]) {
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]):not(#ll-strip-guard) :is([class^="fitInAccount_"], [class*=" fitInAccount_"]) {
     inset: auto !important;
     top: calc(50% - 20px) !important;
     left: 50% !important;

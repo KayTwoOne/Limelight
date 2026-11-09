@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.1 - 2026-11-09
+
+- **The user strip holds its shape alongside other plugins.** Plugins that restyle
+  Discord's user section (CollapsibleUI pins it full width) could outrank the strip
+  and stretch it across the window. The strip's rules now carry the strength of an
+  ID, which no other plugin's class or attribute rules can beat, and set a minimum
+  width as well as a maximum, so CollapsibleUI's 264px minimum on hover can't widen
+  it either.
+
 ## 1.2.0 - 2026-11-09
 
 - **Presets.** Save any theme as a named preset (up to 20), apply it from any theme
