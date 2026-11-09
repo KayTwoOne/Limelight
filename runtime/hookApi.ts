@@ -51,11 +51,42 @@ const FEATURE_OFF: Record<string, string> = {
 const failed = new Set<string>();
 let timer: ReturnType<typeof setInterval> | null = null;
 
+// The health view (runtime/health.ts) hears when a hook is first seen, fails or
+// is reported missing, and runs its probes on the watchdog's tick. Hooks run
+// inside Discord's renders, so the listener must not update React synchronously;
+// health.ts defers its own update.
+let onChange: (() => void) | null = null;
+let onTick: (() => void) | null = null;
+
+export function listenToHooks(change: (() => void) | null, tickFn: (() => void) | null): void {
+    onChange = change;
+    onTick = tickFn;
+}
+
+export interface HookFacts {
+    seen: boolean;
+    failed: boolean;
+    /** The watchdog saw this hook's screen without it running */
+    missing: boolean;
+}
+
+export function hookFacts(name: string): HookFacts {
+    return {
+        seen: monitor.seen.has(name),
+        failed: failed.has(name),
+        missing: monitor.reported.has(name) || chatMonitor.reported.has(name)
+    };
+}
+
 // Both monitors hear every hook: the call chat has its own monitor only so its
-// surface timing is kept apart from the call view's
+// surface timing is kept apart from the call view's. This runs on every render
+// of every patched part, so the first sighting is the only one that does more
+// than two set additions.
 export function markHook(name: string): void {
+    const first = !monitor.seen.has(name);
     markSeen(monitor, name);
     markSeen(chatMonitor, name);
+    if (first) onChange?.();
 }
 
 // Marks the hook seen, runs fn, and on any error logs it once per hook and
@@ -68,6 +99,7 @@ export function guard<T>(name: string, fallback: T, fn: () => T): T {
         if (!failed.has(name)) {
             failed.add(name);
             logger.error(`Hook "${name}" threw, so Discord's own behaviour is used there.`, error);
+            onChange?.();
         }
         return fallback;
     }
@@ -83,17 +115,28 @@ const TILE_SURFACE = `${CALL} [data-selenium-video-tile]`;
 function tick(): void {
     try {
         const surfaceLive = Boolean(SelectedChannelStore.getVoiceChannelId()) && document.querySelector(TILE_SURFACE) !== null;
-        for (const name of checkHooks(monitor, surfaceLive, Date.now(), EXPECTED)) {
+        const missing = checkHooks(monitor, surfaceLive, Date.now(), EXPECTED);
+        for (const name of missing) {
             logger.error(`Hook "${name}" never ran while the call view was showing, so ${FEATURE_OFF[name] ?? "part of Limelight is off"}. Discord may have changed this part of its code.`);
         }
-        if (checkHooks(chatMonitor, callChatLive(), Date.now(), [HOOK.chat]).length > 0) {
+        const chatMissing = checkHooks(chatMonitor, callChatLive(), Date.now(), [HOOK.chat]).length > 0;
+        if (chatMissing) {
             logger.error("The call chat patch never ran while a voice channel's chat was open, so the channel picker is off. Discord may have changed this part of its code.");
             limelightToast("Limelight's channel picker couldn't attach to the call chat. Discord may have changed it.", "failure");
         }
+        if (missing.length > 0 || chatMissing) onChange?.();
     } catch (error) {
         // Log once and stop: a check that throws will throw on every tick.
         logger.error("The hook watchdog failed and has stopped.", error);
         stopWatchdog();
+        return;
+    }
+    // Kept apart, so a failing health check can never stop the watchdog
+    try {
+        onTick?.();
+    } catch (error) {
+        logger.error("The health check failed and has stopped; the watchdog carries on.", error);
+        onTick = null;
     }
 }
 

@@ -52,6 +52,24 @@ export function ChevronLeftIcon() {
     );
 }
 
+// A dropdown's chevron: 16px, stroke 2.2.
+export function ChevronDownIcon() {
+    return (
+        <Glyph size={16} strokeWidth={2.2}>
+            <path d="M6 9l6 6 6-6" />
+        </Glyph>
+    );
+}
+
+// The chosen item's tick in a dropdown: 14px, stroke 2.4.
+export function TickIcon() {
+    return (
+        <Glyph size={14} strokeWidth={2.4}>
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </Glyph>
+    );
+}
+
 // The Everyone header's two people: 22px, stroke 2 (Popover.dc.html:78).
 export function PeopleIcon() {
     return (

@@ -30,7 +30,7 @@ const JOIN_OPTIONS: ReadonlyArray<SegmentOption<ChatJoin>> = [
 
 const LOOK_HINT: Record<ChatLook, string> = {
     discord: "Exactly as Discord shows it, untouched.",
-    follow: "Shares the grid backdrop and its spotlight, so chat and call read as one room.",
+    follow: "Shares the stage behind the tiles (Stage tab), so chat and call read as one room. On Discord's stage it stays as Discord draws it.",
     own: "A background of its own, still joined to the grid."
 };
 

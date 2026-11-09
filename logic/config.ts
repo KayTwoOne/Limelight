@@ -57,6 +57,40 @@ export interface DisplaySettings {
     hideInvitePrompts: boolean;
 }
 
+/** A saved look, named by the person. Applying one copies its theme. */
+export interface Preset {
+    id: string;
+    name: string;
+    theme: Theme;
+}
+
+export type TileSize = "normal" | "small";
+export type SmallSize = "half" | "third" | "chip";
+export type SmallPlace = "below" | "above";
+
+export interface TileSettings {
+    /** Bots without a size of their own get small tiles */
+    smallBots: boolean;
+    size: SmallSize;
+    place: SmallPlace;
+    /** A size set for one person; anyone absent is Auto */
+    people: Record<string, TileSize>;
+}
+
+// The background behind every tile: Discord's own, the stage the Everyone theme
+// makes, or a background of its own. The channel list fold and the look of the
+// user section while folded live here too.
+export type StageLook = "discord" | "everyone" | "own";
+
+export interface StageSettings {
+    look: StageLook;
+    own: Background;
+    /** The « » button in the call's bottom-left controls */
+    foldButton: boolean;
+    /** The channel list is folded away while the call is in view */
+    folded: boolean;
+}
+
 export interface LimelightConfig {
     version: 1;
     everyone: Theme;
@@ -64,15 +98,21 @@ export interface LimelightConfig {
     chat: ChatSettings;
     preCall: PreCallSettings;
     display: DisplaySettings;
+    presets: Preset[];
+    tiles: TileSettings;
+    stage: StageSettings;
 }
 
 export const DISCORD_GREEN = "#23a55a";
 export const PRESET_GREY = "#2b2d31";
 export const LIME = "#d8f35a";
 export const MAX_PEOPLE = 500;
+export const MAX_PRESETS = 20;
+export const PRESET_NAME_MAX = 32;
 
 const SNOWFLAKE = /^\d{15,21}$/;
 const IMAGE_ID = /^[a-z0-9]{8,32}$/;
+export const PRESET_ID = /^[a-z0-9]{8,16}$/;
 
 export function defaultTheme(): Theme {
     return {
@@ -98,8 +138,21 @@ export function defaultConfig(): LimelightConfig {
             look: "discord",
             own: { type: "gradient", from: "#0f2b24", to: "#13453a", angle: 160 }
         },
-        display: { gridZoom: 100, corners: "discord", spacing: "normal", disableUserThemes: false, autoMaximise: false, hideInvitePrompts: false }
+        display: { gridZoom: 100, corners: "discord", spacing: "normal", disableUserThemes: false, autoMaximise: false, hideInvitePrompts: false },
+        presets: [],
+        tiles: { smallBots: false, size: "half", place: "below", people: {} },
+        stage: {
+            look: "discord",
+            own: { type: "gradient", from: "#0b2240", to: "#04070d", angle: 160 },
+            foldButton: false,
+            folded: false
+        }
     };
+}
+
+// A preset's name as stored: trimmed, inner runs of whitespace made one space.
+export function cleanPresetName(value: unknown): string {
+    return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -152,12 +205,59 @@ export function sanitiseTheme(raw: unknown, fallback: Theme = defaultTheme()): T
     };
 }
 
+// Up to MAX_PRESETS, in order. A preset needs a valid unused id and a name of 1 to
+// PRESET_NAME_MAX characters not already taken (ignoring case); anything else is
+// dropped rather than repaired, since a rename the person never made would
+// surprise them.
+function sanitisePresets(raw: unknown): Preset[] {
+    if (!Array.isArray(raw)) return [];
+    const out: Preset[] = [];
+    const ids = new Set<string>();
+    const names = new Set<string>();
+    for (const item of raw) {
+        if (out.length >= MAX_PRESETS) break;
+        if (!isRecord(item)) continue;
+        const { id } = item;
+        if (typeof id !== "string" || !PRESET_ID.test(id) || ids.has(id)) continue;
+        const name = cleanPresetName(item.name);
+        if (name.length === 0 || name.length > PRESET_NAME_MAX) continue;
+        const key = name.toLocaleLowerCase();
+        if (names.has(key)) continue;
+        ids.add(id);
+        names.add(key);
+        out.push({ id, name, theme: sanitiseTheme(item.theme) });
+    }
+    return out;
+}
+
+function sanitiseTileSizes(raw: unknown): Record<string, TileSize> {
+    const out: Record<string, TileSize> = {};
+    if (!isRecord(raw)) return out;
+    let count = 0;
+    for (const id of Object.keys(raw)) {
+        if (count >= MAX_PEOPLE) break;
+        const size = raw[id];
+        if (!SNOWFLAKE.test(id) || (size !== "normal" && size !== "small")) continue;
+        out[id] = size;
+        count++;
+    }
+    return out;
+}
+
 export function sanitiseConfig(raw: unknown): LimelightConfig {
     const d = defaultConfig();
     const r = isRecord(raw) ? raw : {};
     const chat = isRecord(r.chat) ? r.chat : {};
     const preCall = isRecord(r.preCall) ? r.preCall : {};
     const display = isRecord(r.display) ? r.display : {};
+    const tiles = isRecord(r.tiles) ? r.tiles : {};
+    const stage = isRecord(r.stage) ? r.stage : null;
+
+    const chatLook = pick(chat.look, ["discord", "follow", "own"] as const, d.chat.look);
+    const preCallLook = pick(preCall.look, ["discord", "follow", "own"] as const, d.preCall.look);
+    // Before 1.2 there was no stage setting: Follow grid painted the Everyone
+    // stage behind the call. A config from then keeps looking the same.
+    const stageFallback = chatLook === "follow" || preCallLook === "follow" ? "everyone" : d.stage.look;
 
     const people: Record<string, Theme> = {};
     if (isRecord(r.people)) {
@@ -175,7 +275,7 @@ export function sanitiseConfig(raw: unknown): LimelightConfig {
         everyone: sanitiseTheme(r.everyone, d.everyone),
         people,
         chat: {
-            look: pick(chat.look, ["discord", "follow", "own"] as const, d.chat.look),
+            look: chatLook,
             join: pick(chat.join, ["seamless", "tile", "line"] as const, d.chat.join),
             themeDots: boolOr(chat.themeDots, d.chat.themeDots),
             channelPicker: boolOr(chat.channelPicker, d.chat.channelPicker),
@@ -184,7 +284,7 @@ export function sanitiseConfig(raw: unknown): LimelightConfig {
         // A config saved before the pre-call screen existed has no preCall and
         // takes the default, which is Discord's own look.
         preCall: {
-            look: pick(preCall.look, ["discord", "follow", "own"] as const, d.preCall.look),
+            look: preCallLook,
             own: sanitiseBackground(preCall.own, d.preCall.own, false)
         },
         display: {
@@ -194,6 +294,19 @@ export function sanitiseConfig(raw: unknown): LimelightConfig {
             disableUserThemes: boolOr(display.disableUserThemes, d.display.disableUserThemes),
             autoMaximise: boolOr(display.autoMaximise, d.display.autoMaximise),
             hideInvitePrompts: boolOr(display.hideInvitePrompts, d.display.hideInvitePrompts)
+        },
+        presets: sanitisePresets(r.presets),
+        tiles: {
+            smallBots: boolOr(tiles.smallBots, d.tiles.smallBots),
+            size: pick(tiles.size, ["half", "third", "chip"] as const, d.tiles.size),
+            place: pick(tiles.place, ["below", "above"] as const, d.tiles.place),
+            people: sanitiseTileSizes(tiles.people)
+        },
+        stage: {
+            look: pick(stage?.look, ["discord", "everyone", "own"] as const, stageFallback),
+            own: sanitiseBackground(stage?.own, d.stage.own, false),
+            foldButton: boolOr(stage?.foldButton, d.stage.foldButton),
+            folded: boolOr(stage?.folded, d.stage.folded)
         }
     };
 }

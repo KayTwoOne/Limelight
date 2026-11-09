@@ -10,7 +10,8 @@
 import { rgba } from "./colour";
 import { type Background, DISCORD_GREEN, type LimelightConfig, PRESET_GREY } from "./config";
 import { lightestOf, scrimAlpha } from "./scrim";
-import { backgroundCss, CORNER_PX, FOLLOW_WASH_ALPHA, FOLLOW_WASH_HEX, SPOTLIGHT_OPACITY, stageCss, stageLightest, stagePeak } from "./theme";
+import { stagePaint } from "./stage";
+import { backgroundCss, CORNER_PX, FOLLOW_WASH_ALPHA, FOLLOW_WASH_HEX, SPOTLIGHT_OPACITY } from "./theme";
 
 export const CALL = ":is([class^=\"callContainer_\"],[class*=\" callContainer_\"])";
 export const TILE = ".limelight-tile";
@@ -29,6 +30,10 @@ export const PRECALL_STAGE = ".vc-limelight-precall-stage";
 // The call view's wrapper: the stage is set here so it runs unbroken under the
 // call and under the chat column (anchors-panel-chat.md 4, risk 1).
 export const CALL_WRAPPER = `[class*="wrapper_"]:has(> ${CALL})`;
+// Discord's call layout root inside the call container (header, grid and the
+// controls over them). root_ is a name many of Discord's modules use, so it is
+// pinned by its videoControls_ child.
+export const LAYOUT_ROOT = ":is([class^=\"root_\"],[class*=\" root_\"]):has(> :is([class^=\"videoControls_\"],[class*=\" videoControls_\"]))";
 // The call chat's scope root. The chat is portalled out of channelChatWrapper_ into
 // the layer container beside the call wrapper, so this is the one selector that
 // reaches the call chat and no text channel (anchors-panel-chat.md 4).
@@ -79,12 +84,33 @@ function ownLightest(bg: Background, input: PreCallInput): string | null {
     return lightestOf(bg, bg.type === "image" && bg.imageId ? input.imageLightest(bg.imageId) : null);
 }
 
+// The stage behind every tile (Stage tab, logic/stage.ts), on the call wrapper and
+// fixed to the viewport so the chat's Follow grid copy lines up with it. The call
+// container (black) stops painting over it. The column that holds the chat's place
+// keeps Discord's background unless the chat follows the stage (chatRules), so the
+// stage never shows through a chat with a look of its own. Discord's stage, and an
+// Own image still being read, emit nothing.
+function stageRules(input: SheetInput): string[] {
+    const stage = stagePaint(input.config, input);
+    if (!stage) return [];
+    return [
+        `${CALL_WRAPPER}{background:${stage.paint};background-attachment:fixed}`,
+        // Scoped under the wrapper so it outranks Discord's one-class black on the
+        // call container: Discord loads that stylesheet when the call first opens,
+        // after this one, so a rule only as strong loses the tie
+        `${CALL_WRAPPER} > ${CALL}{background:transparent}`,
+        // Inside it, Discord's call layout root fills the container and paints
+        // black as well (Kaylum, 9 Nov)
+        `${CALL_WRAPPER} > ${CALL} ${LAYOUT_ROOT}{background:transparent}`
+    ];
+}
+
 // The stage and chat looks (spec 8, tokens.md 7). The Discord look emits nothing,
 // so G5 holds. Every selector is under the call wrapper or the call chat scope
 // root. An Own background that is an image still being read emits nothing either:
 // chat stays as Discord draws it until the picture arrives.
 function chatRules(input: SheetInput): string[] {
-    const { chat, everyone, display } = input.config;
+    const { chat, display } = input.config;
     if (chat.look === "discord") return [];
 
     const rules: string[] = [];
@@ -98,17 +124,16 @@ function chatRules(input: SheetInput): string[] {
     const scrimOf = (a: number) => `linear-gradient(rgba(0, 0, 0, ${a}), rgba(0, 0, 0, ${a}))`;
     let scrim: string;
     if (chat.look === "follow") {
-        const average = everyoneAverage(input);
-        const stage = stageCss(everyone, average);
-        // The stage is on the wrapper; the call container (black) and the column
-        // that holds the chat's place stop painting over it.
-        rules.push(`${CALL_WRAPPER}{background:${stage};background-attachment:fixed}`);
-        rules.push(`${CALL}{background:transparent}`);
+        // Follow grid follows the stage (stageRules paints it on the wrapper). On
+        // Discord's stage there is nothing to follow, so the chat stays Discord's.
+        const stage = stagePaint(input.config, input);
+        if (!stage) return [];
+        // The chat's column shows the stage, so call and chat read as one room
         rules.push(`${CALL_WRAPPER} > [class*="channelChatWrapper_"]{background:transparent}`);
-        surface = `linear-gradient(${FOLLOW_WASH}, ${FOLLOW_WASH}), ${stage}`;
+        surface = `linear-gradient(${FOLLOW_WASH}, ${FOLLOW_WASH}), ${stage.paint}`;
         fixed = ";background-attachment:fixed";
-        // Sized for the stage's lightest point; a dark stage needs none.
-        const alpha = scrimAlpha(stageLightest(everyone, average));
+        // Sized for the stage's lightest point under the wash; a dark stage needs none.
+        const alpha = scrimAlpha(stage.washedLightest);
         scrim = alpha > 0 ? scrimOf(alpha) : "transparent";
     } else {
         const own = css(chat.own, input);
@@ -158,9 +183,12 @@ function chatRules(input: SheetInput): string[] {
 // Follow grid the stage's own peak (see preCallRules), for Own the background's
 // lightest.
 export function preCallScrimAlpha(input: PreCallInput): number {
-    const { preCall, everyone } = input.config;
+    const { preCall } = input.config;
     if (preCall.look === "discord") return 0;
-    if (preCall.look === "follow") return scrimAlpha(stagePeak(everyone, everyoneAverage(input)));
+    if (preCall.look === "follow") {
+        const stage = stagePaint(input.config, input);
+        return stage ? scrimAlpha(stage.peak) : 0;
+    }
     if (!css(preCall.own, input)) return 0;
     return scrimAlpha(ownLightest(preCall.own, input));
 }
@@ -176,12 +204,15 @@ export function preCallScrimAlpha(input: PreCallInput): number {
 // grid is sized from the stage's own peak and not from stageLightest, which is
 // the chat's washed (darker) version and would leave a bright theme under-scrimmed.
 function preCallRules(input: SheetInput): string[] {
-    const { preCall, everyone } = input.config;
+    const { preCall } = input.config;
     if (preCall.look === "discord") return [];
 
     let paint: string;
     if (preCall.look === "follow") {
-        paint = stageCss(everyone, everyoneAverage(input));
+        // Follows the stage; on Discord's stage the screen stays Discord's
+        const stage = stagePaint(input.config, input);
+        if (!stage) return [];
+        paint = stage.paint;
     } else {
         const own = css(preCall.own, input);
         if (!own) return [];
@@ -234,6 +265,7 @@ export function buildSheet(input: SheetInput): string {
         rules.push(`${TILE}:not(.ll-u-${input.editingUserId}){filter:brightness(0.42)}`);
     }
 
+    rules.push(...stageRules(input));
     rules.push(...chatRules(input));
     rules.push(...preCallRules(input));
 

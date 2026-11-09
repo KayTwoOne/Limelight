@@ -13,13 +13,17 @@
 import { ChannelRTCStore, ChannelStore, React, SelectedChannelStore, UserProfileStore, UserStore, useStateFromStores } from "@webpack/common";
 
 import { normaliseHex } from "../logic/colour";
-import { type Theme } from "../logic/config";
+import { type Preset, type Theme, type TileSize } from "../logic/config";
 import { decodePeople, peopleKey, type PersonEntry, type PersonLike } from "../logic/people";
+import { copyTheme, matchingPreset } from "../logic/presets";
 import { themeFor } from "../logic/theme";
 import { setEditingUserId } from "../runtime/editing";
 import { updateConfig, useLimelightConfig } from "../store/configStore";
 import { useImageUrl } from "../store/imageStore";
 import { ChevronLeftIcon, ChevronRightIcon } from "./panelIcons";
+import { PresetBar, presetOptions } from "./PresetBar";
+import { Segmented, type SegmentOption } from "./Segmented";
+import { Select } from "./Select";
 import { previewBackground, PROFILE_FALLBACK, ThemeEditor } from "./ThemeEditor";
 
 // Discord's avatar sizes are powers of two; 128 stays sharp at 46px on a dense
@@ -65,11 +69,13 @@ interface PersonRowProps {
     guildId: string | null;
     theme: Theme;
     own: boolean;
+    /** The preset their own theme still equals, named on the row */
+    preset: Preset | null;
     onOpen(): void;
     rowRef(node: HTMLButtonElement | null): void;
 }
 
-function PersonRow({ person, guildId, theme, own, onOpen, rowRef }: PersonRowProps) {
+function PersonRow({ person, guildId, theme, own, preset, onOpen, rowRef }: PersonRowProps) {
     const profile = useProfileColour(person.id);
     const imageUrl = useImageUrl(theme.background.type === "image" ? theme.background.imageId : undefined);
 
@@ -84,12 +90,48 @@ function PersonRow({ person, guildId, theme, own, onOpen, rowRef }: PersonRowPro
                         aria-hidden="true"
                         style={{ background: previewBackground(theme.background, imageUrl, profile) }}
                     />
-                    {own ? "Own theme" : "Everyone theme"}
+                    {own ? preset?.name ?? "Own theme" : "Everyone theme"}
                 </span>
             </span>
             {person.live && <span className="vc-limelight-live">LIVE</span>}
             <span className="vc-limelight-chevron"><ChevronRightIcon /></span>
         </button>
+    );
+}
+
+type SizeChoice = "auto" | TileSize;
+
+const SIZE_OPTIONS: ReadonlyArray<SegmentOption<SizeChoice>> = [
+    { id: "auto", label: "Auto" },
+    { id: "normal", label: "Normal" },
+    { id: "small", label: "Small" }
+];
+
+// A person's tile size (small tiles, tiles/SplitGrid.tsx). Auto follows Bots get
+// small tiles for a bot, and keeps anyone else full size.
+function TileSizeField({ userId }: { userId: string; }) {
+    const { tiles } = useLimelightConfig();
+    const bot = useStateFromStores([UserStore], () => UserStore.getUser(userId)?.bot === true, [userId]);
+    const value: SizeChoice = tiles.people[userId] ?? "auto";
+
+    return (
+        <div className="vc-limelight-field">
+            <span className="vc-limelight-section-label">Tile size</span>
+            <Segmented
+                label="Tile size"
+                options={SIZE_OPTIONS}
+                value={value}
+                onChange={next => updateConfig(draft => {
+                    if (next === "auto") delete draft.tiles.people[userId];
+                    else draft.tiles.people[userId] = next;
+                })}
+            />
+            <p className="vc-limelight-caption">
+                {bot
+                    ? `A bot: Auto follows Bots get small tiles (${tiles.smallBots ? "on" : "off"}). Normal keeps it full size.`
+                    : "Auto keeps them full size. Small puts them in the strip with the bots."}
+            </p>
+        </div>
     );
 }
 
@@ -122,6 +164,12 @@ function PersonEditor({ person, guildId, backRef, onBack }: PersonEditorProps) {
         setResets(count => count + 1);
     }
 
+    // A preset replaces the whole theme, so the editor starts afresh on it too
+    function applyPreset(next: Theme): void {
+        save(next);
+        setResets(count => count + 1);
+    }
+
     return (
         <>
             <div className="vc-limelight-editor-head">
@@ -142,6 +190,8 @@ function PersonEditor({ person, guildId, backRef, onBack }: PersonEditorProps) {
                     </button>
                 </div>
             </div>
+            <TileSizeField userId={person.id} />
+            <PresetBar theme={theme} onApply={applyPreset} />
             <ThemeEditor key={resets} theme={theme} onChange={save} profile={profile} />
         </>
     );
@@ -205,25 +255,43 @@ export function PeopleTab() {
 
     if (open) return <PersonEditor person={open} guildId={guildId} backRef={backRef} onBack={back} />;
 
+    const options = presetOptions(config.presets);
+
     return (
         <>
             <div className="vc-limelight-people">
                 <div className="vc-limelight-section-label vc-limelight-people-label">In this call / {people.length}</div>
                 {people.map(person => {
                     const { theme, own } = themeFor(config, person.id);
+                    const preset = own ? matchingPreset(theme, config.presets) : null;
                     return (
-                        <PersonRow
-                            key={person.id}
-                            person={person}
-                            guildId={guildId}
-                            theme={theme}
-                            own={own}
-                            onOpen={() => openPerson(person.id)}
-                            rowRef={node => {
-                                if (node) rows.current.set(person.id, node);
-                                else rows.current.delete(person.id);
-                            }}
-                        />
+                        <div key={person.id} className="vc-limelight-person-card">
+                            <PersonRow
+                                person={person}
+                                guildId={guildId}
+                                theme={theme}
+                                own={own}
+                                preset={preset}
+                                onOpen={() => openPerson(person.id)}
+                                rowRef={node => {
+                                    if (node) rows.current.set(person.id, node);
+                                    else rows.current.delete(person.id);
+                                }}
+                            />
+                            {/* Hands out a preset without opening the person: a copy, so
+                                editing the preset later never changes them */}
+                            <Select
+                                label={`Preset for ${person.name || "this person"}`}
+                                placeholder={options.length ? "Choose a preset" : "No presets yet"}
+                                value={preset?.id ?? null}
+                                options={options}
+                                disabled={options.length === 0}
+                                onChange={id => {
+                                    const chosen = config.presets.find(p => p.id === id);
+                                    if (chosen) updateConfig(draft => { draft.people[person.id] = copyTheme(chosen.theme); });
+                                }}
+                            />
+                        </div>
                     );
                 })}
             </div>

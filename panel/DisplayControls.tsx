@@ -9,12 +9,15 @@
 // updateConfig, so the call grid follows at once and the change is saved a moment
 // later. The Display tab and the plugin's settings page (spec 9.6) both render
 // DisplayControls, so there is one set of controls and one source of truth: the
-// config store. The settings page adds Reset all Limelight themes.
+// config store. The settings page adds the health view and Reset all Limelight
+// themes.
 
+import ErrorBoundary from "@components/ErrorBoundary";
 import { Alerts, React } from "@webpack/common";
 
-import { type Corners, defaultConfig, type Spacing } from "../logic/config";
+import { type Corners, defaultConfig, type SmallPlace, type SmallSize, type Spacing } from "../logic/config";
 import { flushConfig, updateConfig, useLimelightConfig } from "../store/configStore";
+import { HealthPanel } from "./HealthPanel";
 import { Segmented, type SegmentOption } from "./Segmented";
 import { SwitchRow } from "./SwitchRow";
 
@@ -30,8 +33,19 @@ const SPACING_OPTIONS: ReadonlyArray<SegmentOption<Spacing>> = [
     { id: "airy", label: "Airy" }
 ];
 
+const SMALL_SIZE_OPTIONS: ReadonlyArray<SegmentOption<SmallSize>> = [
+    { id: "half", label: "Half" },
+    { id: "third", label: "Third" },
+    { id: "chip", label: "Chip", tag: "New" }
+];
+
+const SMALL_PLACE_OPTIONS: ReadonlyArray<SegmentOption<SmallPlace>> = [
+    { id: "below", label: "Below" },
+    { id: "above", label: "Above" }
+];
+
 export function DisplayControls() {
-    const { display } = useLimelightConfig();
+    const { display, tiles } = useLimelightConfig();
     const zoomLabel = React.useId();
 
     return (
@@ -92,9 +106,43 @@ export function DisplayControls() {
                 <SwitchRow
                     label="Hide invite prompts"
                     hint="Invite to Voice, and the empty tile when you're alone"
-                    tag="New"
                     checked={display.hideInvitePrompts}
                     onChange={next => updateConfig(draft => { draft.display.hideInvitePrompts = next; })}
+                />
+            </div>
+
+            {/* Small tiles (tiles/SplitGrid.tsx): who goes small is set here for
+                bots and per person in People */}
+            <div className="vc-limelight-field">
+                <span className="vc-limelight-section-label">Small tiles</span>
+                <div className="vc-limelight-switches">
+                    <SwitchRow
+                        label="Bots get small tiles"
+                        hint="Anyone else can be set small in People"
+                        tag="New"
+                        checked={tiles.smallBots}
+                        onChange={next => updateConfig(draft => { draft.tiles.smallBots = next; })}
+                    />
+                </div>
+            </div>
+
+            <div className="vc-limelight-field">
+                <span className="vc-limelight-section-label">Small tile size</span>
+                <Segmented
+                    label="Small tile size"
+                    options={SMALL_SIZE_OPTIONS}
+                    value={tiles.size}
+                    onChange={next => updateConfig(draft => { draft.tiles.size = next; })}
+                />
+            </div>
+
+            <div className="vc-limelight-field">
+                <span className="vc-limelight-section-label">Small tiles sit</span>
+                <Segmented
+                    label="Small tiles sit"
+                    options={SMALL_PLACE_OPTIONS}
+                    value={tiles.place}
+                    onChange={next => updateConfig(draft => { draft.tiles.place = next; })}
                 />
             </div>
         </>
@@ -122,6 +170,30 @@ function confirmReset(): void {
     });
 }
 
+// The channel list button again (it lives in the Stage tab), so the list can be
+// brought back from here even when the call's own controls can't be reached.
+// Off unfolds the list, as it does in the Stage tab.
+function ChannelListSwitch() {
+    const { stage } = useLimelightConfig();
+    return (
+        <div className="vc-limelight-field">
+            <span className="vc-limelight-section-label">Channel list</span>
+            <div className="vc-limelight-switches">
+                <SwitchRow
+                    label="Channel list button"
+                    hint="Off brings the channel list back"
+                    tag="New"
+                    checked={stage.foldButton}
+                    onChange={next => updateConfig(draft => {
+                        draft.stage.foldButton = next;
+                        if (!next) draft.stage.folded = false;
+                    })}
+                />
+            </div>
+        </div>
+    );
+}
+
 // The one setting on the plugin's settings page (index.tsx). The popover's own
 // classes give it the same surface, so the controls look as they do in the call.
 export function SettingsPage() {
@@ -129,6 +201,11 @@ export function SettingsPage() {
         <div className="vc-limelight-popover vc-limelight-settings">
             <div className="vc-limelight-settings-body">
                 <DisplayControls />
+                <ChannelListSwitch />
+                {/* Its own boundary: if the health view fails, the rest of the page stays */}
+                <ErrorBoundary noop>
+                    <HealthPanel />
+                </ErrorBoundary>
                 <div className="vc-limelight-field">
                     <span className="vc-limelight-section-label">Reset</span>
                     <p className="vc-limelight-caption">

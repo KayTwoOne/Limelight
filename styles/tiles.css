@@ -86,3 +86,171 @@
         transition-delay: 0ms;
     }
 }
+
+/*
+ * Small tiles (tiles/SplitGrid.tsx): Discord's grid twice, in a column. The main
+ * grid takes what the strip leaves; the strip's height is solved in JS so a small
+ * tile is half or a third of a main one. Above flips the order, nothing else.
+ */
+.vc-limelight-split {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+.vc-limelight-split[data-place="above"] {
+    flex-direction: column-reverse;
+}
+
+.vc-limelight-split-main {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.vc-limelight-split-strip {
+    display: flex;
+    flex: 0 0 auto;
+    min-height: 0;
+}
+
+.vc-limelight-split-main > *,
+.vc-limelight-split-strip > * {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+/*
+ * Chip small tiles (tiles/ChipStrip.tsx): one 40px line per small person, centred
+ * and wrapping, 8px apart. Its height is its content's, so the main grid takes the
+ * rest. The paddings (8 towards the main grid, 64 where the call's controls or
+ * header sit) are set inline.
+ */
+.vc-limelight-tilechips {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding-inline: 8px;
+}
+
+/* The chip: Discord's tile fills it, so its theme, speaking ring and corners are
+   the tile's own, clipped to one line */
+.vc-limelight-tilechip {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    height: 40px;
+    max-width: 320px;
+    border-radius: var(--custom-base-tile-border-radius, 8px);
+    overflow: hidden;
+}
+
+.vc-limelight-tilechip-tile {
+    position: absolute;
+    inset: 0;
+    display: flex;
+}
+
+.vc-limelight-tilechip-tile > * {
+    flex: 1 1 100%;
+    min-width: 0;
+    height: 100%;
+}
+
+/* Discord's avatar and overlay, and Limelight's pill, would be drawn for a big
+   tile; the face below stands in for them. Hidden, not removed, so the tile's own
+   layout is left alone. */
+.vc-limelight-tilechip-tile [class*="avatarWrapper_"],
+.vc-limelight-tilechip-tile [class*="overlayContainer_"],
+.vc-limelight-tilechip-tile .ll-pill,
+.vc-limelight-tilechip-tile video {
+    visibility: hidden;
+}
+
+/* The face: in the chip's flow, so it sets the chip's width, and above the tile.
+   Every click falls through to Discord's tile beneath. */
+.vc-limelight-tilechip-face {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding: 0 14px 0 6px;
+    pointer-events: none;
+}
+
+.vc-limelight-tilechip-avatar {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+}
+
+/* White on the theme, shadowed so it holds on a bright one */
+.vc-limelight-tilechip-name {
+    min-width: 0;
+    overflow: hidden;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+}
+
+.vc-limelight-tilechip-icons {
+    display: flex;
+    flex: none;
+    gap: 4px;
+    opacity: 0.75;
+}
+
+/* What they're doing, after a hairline, as on a person's name pill. The name keeps
+   its room; the activity gives way first. */
+.vc-limelight-tilechip-sep {
+    flex: none;
+    width: 1px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.vc-limelight-tilechip-act {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.vc-limelight-tilechip-act-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.vc-limelight-tilechip-act-text {
+    min-width: 0;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 18px;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+}
+
+/* Tile spacing scales a tile from 16:9 maths, which would push a chip's tile (and
+   Discord's speaking ring with it) past the chip's edge, where it is clipped */
+.vc-limelight-tilechip-tile .limelight-tile {
+    transform: none !important;
+}

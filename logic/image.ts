@@ -53,9 +53,11 @@ export function newImageId(random: () => number = Math.random): string {
     return id;
 }
 
-// Every image a config holds: Everyone, each person, the chat's Own look and the
-// pre-call screen's Own look. A background keeps its image while it shows another
-// type (only Remove lets go), so the id counts whatever the type is.
+// Every image a config holds: Everyone, each person, every preset, the chat's Own
+// look, the pre-call screen's Own look and the stage's Own background. A preset
+// keeps its image even when no theme shows it any more. A background keeps its
+// image while it shows another type (only Remove lets go), so the id counts
+// whatever the type is.
 export function referencedImageIds(config: LimelightConfig): Set<string> {
     const ids = new Set<string>();
     const note = (background: Background) => {
@@ -63,8 +65,10 @@ export function referencedImageIds(config: LimelightConfig): Set<string> {
     };
     note(config.everyone.background);
     for (const theme of Object.values(config.people)) note(theme.background);
+    for (const preset of config.presets) note(preset.theme.background);
     note(config.chat.own);
     note(config.preCall.own);
+    note(config.stage.own);
     return ids;
 }
 

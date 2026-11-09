@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.2.0 - 2026-11-09
+
+- **Presets.** Save any theme as a named preset (up to 20), apply it from any theme
+  editor, or hand it out from the dropdown under each person in People. Applying
+  copies the look, so editing a preset later never changes anyone you gave it to.
+  Images in presets are kept safe from the image tidy.
+- **Small tiles** (Display, new). Bots, or anyone you set small in People, go in a
+  strip of tiles half or a third the size of everyone else's, or as **Chips**: one
+  slim line each with their avatar, name and mute icons, still Discord's own tile
+  underneath, so click, right-click and the speaking ring work as before. Below or
+  above the grid, and the people you're talking to keep the space. Off by default.
+- **The Stage tab.** The background behind every tile: Discord's own, the Everyone
+  theme's stage, or your own. Follow grid in the chat and before you join follows
+  it. The pre-call screen's settings move here as Before you join.
+- **Channel list button** (Stage, off by default). « in the call's bottom-left
+  controls folds the channel list away so the stage fills the window; » brings it
+  back. Only while you're watching the call. Your user section stands in the server
+  list as a slim strip: the green ping icon, then your avatar (decoration and all,
+  and it still opens your profile), mute, deafen and settings, over your nameplate
+  turned on its side. All of it is Discord's own, just laid out upright.
+- Hide invite prompts no longer carries the New tag; Bots get small tiles, Chip and
+  the Channel list button carry it now.
+- **Health**, on Limelight's settings page. Every part of Limelight with whether
+  it's working this session: Working, Ready (in place, runs when you open it),
+  Waiting (Discord hasn't loaded that part yet) or Not working (Discord changed it,
+  and its own version shows instead). It updates live, and Copy report gives a
+  plain-text summary with the Limelight, Discord and Equicord versions.
+- **Health is in the panel too**, behind a cog beside Close. A red dot on the cog
+  means a part of Limelight isn't working, so a break shows without opening it.
+- Behind the scenes, every Discord class Limelight's styles depend on is now
+  checked against Discord's live code before each release, in the exact part of
+  Discord it belongs to. The theme break fixed in 1.0.2 would have been caught
+  this way.
+
 ## 1.1.0 - 2026-11-08
 
 - **Hide invite prompts** (Display tab). Takes away the Invite to Voice row under

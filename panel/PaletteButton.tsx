@@ -15,12 +15,14 @@ import { FocusLock, Popout, React } from "@webpack/common";
 import { type KeyboardEvent, type ReactNode, type RefObject } from "react";
 
 import { finders } from "../patches";
-import { CloseIcon, LimelightMark, PaletteIcon } from "../tiles/icons";
+import { getHealth, subscribeHealth } from "../runtime/health";
+import { CloseIcon, CogIcon, LimelightMark, PaletteIcon } from "../tiles/icons";
 import { ChatTab } from "./ChatTab";
 import { DisplayControls } from "./DisplayControls";
 import { EveryoneTab } from "./EveryoneTab";
+import { HealthPanel } from "./HealthPanel";
 import { PeopleTab } from "./PeopleTab";
-import { PreCallTab } from "./PreCallTab";
+import { StageTab, type StageView } from "./StageTab";
 
 // Lazy, so nothing is looked up until the first render. Both strings are
 // destructured prop names in the component (anchors-panel-chat.md 1), so the
@@ -100,8 +102,8 @@ function KeepTrayAwake() {
 const TABS = [
     { id: "people", label: "People" },
     { id: "everyone", label: "Everyone" },
+    { id: "stage", label: "Stage" },
     { id: "chat", label: "Chat" },
-    { id: "precall", label: "Pre-call" },
     { id: "display", label: "Display" }
 ] as const;
 
@@ -155,13 +157,24 @@ interface PopoverProps {
     // where this opening starts: the remembered tab changes when the person picks
     // a tab, not when the popover opens.
     initialTab?: TabId;
+    // Which half of the Stage tab to show first, for the pre-call screen's
+    // button: Before you join. Pre-call was its own tab before 1.2; six tabs do not
+    // fit the 420px panel.
+    initialStageView?: StageView;
 }
 
-export function Popover({ onClose, initialTab }: PopoverProps) {
+export function Popover({ onClose, initialTab, initialStageView }: PopoverProps) {
     const panelRef = React.useRef<HTMLDivElement>(null);
     const tabRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
     const firstTab = React.useRef<TabId>(initialTab ?? rememberedTab);
     const [tab, setTab] = React.useState<TabId>(firstTab.current);
+    // The Health view (the cog in the header) takes the body's place; picking
+    // any tab, or the cog again, goes back. It isn't remembered: the panel
+    // always reopens on a tab. The cog carries a red dot while a part of
+    // Limelight isn't working, so a break shows without opening anything.
+    const [healthOpen, setHealthOpen] = React.useState(false);
+    const { rows } = React.useSyncExternalStore(subscribeHealth, getHealth);
+    const broken = rows.filter(row => row.state === "broken").length;
     const base = React.useId();
 
     // Focus enters the popover on the selected tab. Discord's focus lock hands
@@ -176,6 +189,7 @@ export function Popover({ onClose, initialTab }: PopoverProps) {
     function select(id: TabId): void {
         rememberedTab = id;
         setTab(id);
+        setHealthOpen(false);
     }
 
     // Arrow keys move between tabs and select as they go; Home and End jump.
@@ -201,9 +215,22 @@ export function Popover({ onClose, initialTab }: PopoverProps) {
                         <LimelightMark />
                         <span className="vc-limelight-wordmark">Limelight</span>
                     </div>
-                    <button type="button" className="vc-limelight-close" aria-label="Close Limelight" onClick={onClose}>
-                        <CloseIcon />
-                    </button>
+                    <div className="vc-limelight-header-actions">
+                        <button
+                            type="button"
+                            className="vc-limelight-health-toggle"
+                            aria-pressed={healthOpen}
+                            aria-label={broken > 0 ? `Health: ${broken} ${broken === 1 ? "part isn't" : "parts aren't"} working` : "Health"}
+                            title="Health"
+                            onClick={() => setHealthOpen(open => !open)}
+                        >
+                            <CogIcon />
+                            {broken > 0 && <span className="vc-limelight-health-alert" aria-hidden="true" />}
+                        </button>
+                        <button type="button" className="vc-limelight-close" aria-label="Close Limelight" onClick={onClose}>
+                            <CloseIcon />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="vc-limelight-tabs" role="tablist" aria-label="Limelight sections">
@@ -215,7 +242,7 @@ export function Popover({ onClose, initialTab }: PopoverProps) {
                             role="tab"
                             className="vc-limelight-tab"
                             id={`${base}-tab-${id}`}
-                            aria-selected={tab === id}
+                            aria-selected={!healthOpen && tab === id}
                             aria-controls={`${base}-panel`}
                             tabIndex={tab === id ? 0 : -1}
                             onClick={() => select(id)}
@@ -226,9 +253,15 @@ export function Popover({ onClose, initialTab }: PopoverProps) {
                     ))}
                 </div>
 
-                <div className="vc-limelight-body" role="tabpanel" id={`${base}-panel`} aria-labelledby={`${base}-tab-${tab}`}>
-                    {renderTab(tab)}
-                </div>
+                {healthOpen ? (
+                    <div className="vc-limelight-body" role="region" aria-label="Limelight health">
+                        <ErrorBoundary noop><HealthPanel /></ErrorBoundary>
+                    </div>
+                ) : (
+                    <div className="vc-limelight-body" role="tabpanel" id={`${base}-panel`} aria-labelledby={`${base}-tab-${tab}`}>
+                        {renderTab(tab, initialStageView)}
+                    </div>
+                )}
 
                 <ErrorBoundary noop>
                     <KeepTrayAwake />
@@ -240,7 +273,7 @@ export function Popover({ onClose, initialTab }: PopoverProps) {
 
 // Each tab's content, in its own boundary so one tab failing leaves the popover
 // and its other tabs working.
-function renderTab(tab: TabId): ReactNode {
+function renderTab(tab: TabId, stageView: StageView | undefined): ReactNode {
     switch (tab) {
         case "people":
             return <ErrorBoundary noop><PeopleTab /></ErrorBoundary>;
@@ -248,8 +281,8 @@ function renderTab(tab: TabId): ReactNode {
             return <ErrorBoundary noop><EveryoneTab /></ErrorBoundary>;
         case "chat":
             return <ErrorBoundary noop><ChatTab /></ErrorBoundary>;
-        case "precall":
-            return <ErrorBoundary noop><PreCallTab /></ErrorBoundary>;
+        case "stage":
+            return <ErrorBoundary noop><StageTab initialView={stageView} /></ErrorBoundary>;
         case "display":
             return <ErrorBoundary noop><DisplayControls /></ErrorBoundary>;
     }

@@ -8,8 +8,7 @@
 // smallest black overlay that keeps message text at 4.5:1 (spec 8.3).
 
 import { contrastRatio, mixHex, normaliseHex, relativeLuminance } from "./colour";
-import { type Background, type ChatSettings, type Theme } from "./config";
-import { stageLightest } from "./theme";
+import { type Background, type ChatSettings } from "./config";
 
 export const CHAT_TEXT = "#dbdee1";
 
@@ -30,13 +29,18 @@ export function scrimAlpha(lightest: string | null, text = CHAT_TEXT, minRatio =
     return 1;
 }
 
+// Discord's own dark chat colour, for Follow grid on Discord's stage, where
+// Limelight paints nothing behind the chat. The lighter of Discord's dark chat
+// colours, so a dot sized against it reads on either.
+export const DISCORD_CHAT = "#313338";
+
 // The chat's lightest surface colour, which a theme dot is lightened against: under
-// Follow grid the stage's lightest point (tint and spotlight under the wash), and
-// under Own theme the background's lightest colour after its scrim. Worst case, so
-// a dot reads everywhere in chat; the colour is only ever lightened, so the
-// lightest surface is the one that decides.
-export function chatSurface(chat: ChatSettings, everyone: Theme, imageLightest: string | null, imageAverage: string | null): string {
-    if (chat.look === "follow") return stageLightest(everyone, imageAverage);
+// Follow grid the stage's lightest point under the wash (logic/stage.ts passes it
+// in, or null on Discord's stage), and under Own theme the background's lightest
+// colour after its scrim. Worst case, so a dot reads everywhere in chat; the colour
+// is only ever lightened, so the lightest surface is the one that decides.
+export function chatSurface(chat: ChatSettings, followLightest: string | null, imageLightest: string | null): string {
+    if (chat.look === "follow") return followLightest ?? DISCORD_CHAT;
     const lightest = lightestOf(chat.own, imageLightest) ?? "#ffffff";
     return mixHex(lightest, "#000000", scrimAlpha(lightest));
 }

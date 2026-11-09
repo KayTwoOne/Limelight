@@ -1,0 +1,167 @@
+/*
+ * The channel list fold (Stage tab). runtime/channelFoldRuntime.ts puts
+ * limelight-folded on body only while your own server call is in view and the list
+ * is folded, after measuring Discord's page: --ll-rail-width (the server list) and
+ * --ll-strip-left (where the strip stands in it), in pixels. A moment later the fold
+ * checks the result and undoes itself if Discord's layout didn't follow.
+ *
+ * Discord sizes its sidebar from --custom-guild-sidebar-width, set inline on body.
+ * Folded, it becomes the server list's width, so the call grows into the space and
+ * the stage behind it fills it. The channel list stays mounted: Discord's own
+ * @container rule hides its contents once it is that narrow.
+ */
+body.limelight-folded {
+    --custom-guild-sidebar-width: var(--ll-rail-width) !important;
+}
+
+/*
+ * Discord's own user section stands in the server list as a strip (approved
+ * mockup, 9 Nov 2026): the green ping icon on its own block, then your avatar,
+ * mute, deafen and settings over your nameplate turned a quarter. Nothing here is
+ * redrawn: these rules only lay out, hide and turn Discord's elements, so the
+ * avatar (with its decoration and the profile it opens), the buttons' tooltips and
+ * menus, and the ping icon's hover stay Discord's. Discord measures this section
+ * (--custom-app-panels-height), so the server list stops above the strip itself.
+ * Nothing sets overflow, so an avatar decoration is never clipped.
+ */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) {
+    position: fixed !important;
+    inset: auto auto 8px var(--ll-strip-left) !important;
+    width: 56px !important;
+    max-width: 56px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+}
+
+/* Everything in the section but the voice panel and the account row */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) > :not(:has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"]), :is([class^="accountPopoutButtonWrapper_"], [class*=" accountPopoutButtonWrapper_"]))),
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="wrapper_"], [class*=" wrapper_"]):has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"])) > :not(:has(:is([class^="rtcConnectionStatus_"], [class*=" rtcConnectionStatus_"]))) {
+    display: none !important;
+}
+
+/* The strip is one box, as Discord's own section is (Kaylum, 9 Nov): the section
+   keeps Discord's panel colour, border and corners, and its two parts draw nothing
+   of their own. The voice panel is the top 40px, holding only the ping icon, above
+   the nameplate that rises under it. */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="container_"], [class*=" container_"]):has(> :is([class^="connection_"], [class*=" connection_"])) {
+    display: grid;
+    place-items: center;
+    position: relative;
+    z-index: 1;
+    height: 40px;
+    padding: 0;
+}
+
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="connection_"], [class*=" connection_"]) {
+    justify-content: center;
+}
+
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="inner_"], [class*=" inner_"]) {
+    flex: none;
+}
+
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="ping_"], [class*=" ping_"]) {
+    margin: 0;
+}
+
+/* "Voice Connected" and the channel, Krisp and disconnect, the four action buttons
+   and anyone listening along: the call's own bar has what matters */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="labelWrapper_"], [class*=" labelWrapper_"]),
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="voiceButtonsContainer_"], [class*=" voiceButtonsContainer_"]),
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="actionButtons_"], [class*=" actionButtons_"]),
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="voiceUsers_"], [class*=" voiceUsers_"]) {
+    display: none !important;
+}
+
+/* The account row, stood on its end below it: 196px, the Trimmed length. Your
+   avatar at the top, 2px down, and mute, deafen and settings from the foot of the
+   nameplate upwards (Kaylum, 9 Nov) */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="container_"], [class*=" container_"]):has(> :is([class^="buttons_"], [class*=" buttons_"])) {
+    position: relative;
+    flex-direction: column !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+    height: 196px;
+    padding: 2px 0 10px !important;
+}
+
+/* The avatar button: just the avatar now, opening your profile as it always has */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="accountPopoutButtonWrapper_"], [class*=" accountPopoutButtonWrapper_"]) {
+    flex: none;
+    justify-content: center;
+    margin: 0 !important;
+    padding: 4px;
+}
+
+/* Your name and handle: read top to bottom they'd look wrong (Kaylum, 9 Nov) */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="nameTag_"], [class*=" nameTag_"]) {
+    display: none !important;
+}
+
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="buttons_"], [class*=" buttons_"]) {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Discord's three are always the last: mute, deafen, settings. Anything another
+   plugin puts before them (a game button, Kaylum, 9 Nov) goes. */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="buttons_"], [class*=" buttons_"]) > :not(:nth-last-child(-n + 3)) {
+    display: none !important;
+}
+
+/* The nameplate: Discord's own layer, drawn along a 236 by 56 row as it draws it,
+   then turned a quarter about its centre, so its art end lands at the bottom and its
+   wash rises to the top of the strip, fading out under the ping icon as Discord's
+   own section does under Voice Connected. It runs the whole strip: 40px above the
+   account row it belongs to. Its image or video turns with it. */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:is([class^="panels_"], [class*=" panels_"]) :is([class^="fitInAccount_"], [class*=" fitInAccount_"]) {
+    inset: auto !important;
+    top: calc(50% - 20px) !important;
+    left: 50% !important;
+    width: 236px !important;
+    height: 56px !important;
+    border-radius: var(--radius-sm);
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* The « » button, shaped like the call's own controls, with the lime of
+   Limelight's own controls. It takes the height of Discord's row beside it (and is
+   as wide as it is tall), so its centre sits on theirs. */
+.vc-limelight-fold-button {
+    display: flex;
+    flex: none;
+    align-self: stretch;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
+    aspect-ratio: 1;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(20, 21, 24, 0.82);
+    box-shadow: inset 0 0 0 1px rgba(216, 243, 90, 0.45);
+    color: #d8f35a;
+    cursor: pointer;
+}
+
+.vc-limelight-fold-button:hover {
+    background: rgba(32, 34, 38, 0.92);
+}
+
+.vc-limelight-fold-button:focus-visible {
+    outline: 2px solid #d8f35a;
+    outline-offset: 3px;
+}
+
+/* After a failed check: still shown, so its tooltip can say why, but inert */
+.vc-limelight-fold-button[aria-disabled="true"] {
+    box-shadow: inset 0 0 0 1px rgba(245, 137, 141, 0.55);
+    color: #f5898d;
+    cursor: default;
+}

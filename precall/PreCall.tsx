@@ -104,7 +104,7 @@ function PreCallButton({ Button }: PreCallButtonProps) {
             targetElementRef={targetRef}
             renderPopout={({ closePopout }) => (
                 <ErrorBoundary noop>
-                    <Popover onClose={closePopout} initialTab="precall" />
+                    <Popover onClose={closePopout} initialTab="stage" initialStageView="before" />
                 </ErrorBoundary>
             )}
         >

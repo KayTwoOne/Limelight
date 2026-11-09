@@ -39,6 +39,10 @@
     --ll-on-accent: #11120d;
     --ll-tag-fill: rgba(216, 243, 90, 0.12);
     --ll-tag-edge: rgba(216, 243, 90, 0.3);
+    /* Not working, in the health view: the same red as Reset's danger button */
+    --ll-bad-ink: #f5898d;
+    --ll-bad-fill: rgba(218, 55, 60, 0.16);
+    --ll-bad-edge: rgba(218, 55, 60, 0.45);
 
     /* Text, brightest to faintest */
     --ll-ink: #f2f3f5;
@@ -133,6 +137,10 @@
     color: var(--ll-ink);
     color-scheme: dark;
     font-family: var(--font-primary);
+    /* Opened near the top of the window (the pre-call screen's button), the panel
+       can sit over Discord's title bar, a window-drag region that swallows clicks.
+       no-drag gives the whole panel back to its controls. */
+    -webkit-app-region: no-drag;
 }
 
 /* Every control in the popover starts from a plain button. :where keeps this at
@@ -200,6 +208,51 @@
 
 .vc-limelight-close:hover {
     background: var(--ll-row);
+}
+
+/* ------------------------------------------------------- header buttons */
+
+/*
+ * Health and Close sit together on the right of the header, each a 44px target
+ * (D5) around an 18px glyph. Health is a toggle: pressed, it takes the lime tint
+ * the New tag and Working chips use. A red dot on it means a part of Limelight
+ * isn't working, so a break shows without opening anything.
+ */
+.vc-limelight-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.vc-limelight-health-toggle {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    color: var(--ll-ink-secondary);
+}
+
+.vc-limelight-health-toggle:hover {
+    background: var(--ll-row);
+}
+
+.vc-limelight-health-toggle[aria-pressed="true"] {
+    background: var(--ll-tag-fill);
+    color: var(--ll-accent);
+}
+
+.vc-limelight-health-alert {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ll-bad-ink);
+    box-shadow: 0 0 0 2px var(--ll-surface);
 }
 
 /* ---------------------------------------------------------------------- tabs */
@@ -586,6 +639,14 @@
 
 .vc-limelight-segment[aria-pressed="true"] {
     background: var(--ll-accent);
+    color: var(--ll-on-accent);
+}
+
+/* A New tag on the chosen option: lime on lime would vanish, so it takes the
+   on-accent ink over a faint dark tint */
+.vc-limelight-segment[aria-pressed="true"] .vc-limelight-tag {
+    background: rgba(17, 18, 13, 0.14);
+    box-shadow: none;
     color: var(--ll-on-accent);
 }
 
@@ -1046,6 +1107,372 @@
 .vc-limelight-switch-row[aria-checked="true"] .vc-limelight-switch-knob {
     left: 19px;
     background: var(--ll-on-accent);
+}
+
+/* ---------------------------------------------------------------- dropdowns */
+
+/*
+ * A dropdown (presets): a 44px field-style button showing the choice with its
+ * swatch, and a list under it. The list is the panel's well with the field edge;
+ * the chosen item carries a lime tick, and Manage sits under a hairline.
+ */
+.vc-limelight-select {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--ll-field-edge);
+    border-radius: 8px;
+    background: var(--ll-well);
+    color: var(--ll-ink);
+    font-size: 13px;
+    font-weight: var(--ll-weight-light);
+    text-align: left;
+}
+
+.vc-limelight-select:hover {
+    border-color: var(--ll-chip-edge);
+}
+
+.vc-limelight-select[aria-expanded="true"] {
+    border-color: var(--ll-accent);
+}
+
+.vc-limelight-select-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vc-limelight-select-text[data-empty] {
+    color: var(--ll-ink-muted);
+}
+
+.vc-limelight-select-chevron {
+    flex: none;
+    color: var(--ll-ink-muted);
+}
+
+.vc-limelight-preset-swatch {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--ll-swatch-edge);
+}
+
+.vc-limelight-menu {
+    margin: 6px 0 0;
+    padding: 4px;
+    border-radius: 10px;
+    background: var(--ll-well);
+    box-shadow: 0 0 0 1px var(--ll-field-edge), 0 16px 32px rgba(0, 0, 0, 0.5);
+    list-style: none;
+}
+
+.vc-limelight-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: 7px;
+    color: var(--ll-ink-label);
+    font-size: 13px;
+}
+
+.vc-limelight-menu-item[data-active] {
+    background: var(--ll-row-hover);
+    color: var(--ll-ink);
+}
+
+.vc-limelight-menu-item .vc-limelight-menu-tick {
+    margin-left: auto;
+    color: var(--ll-accent);
+}
+
+.vc-limelight-menu-rule {
+    height: 1px;
+    margin: 4px 6px;
+    background: var(--ll-hairline);
+}
+
+.vc-limelight-menu-item.vc-limelight-menu-manage {
+    color: var(--ll-ink-muted);
+}
+
+/* ---------------------------------------------------------------- presets */
+
+/* The editor's preset bar: the dropdown, and Save as preset beside it */
+.vc-limelight-preset-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    /* Start, so Save as preset keeps its height while the list is open beside it */
+    align-items: start;
+    gap: 8px;
+}
+
+.vc-limelight-input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--ll-accent);
+    border-radius: 8px;
+    background: var(--ll-well);
+    color: var(--ll-ink);
+    font: inherit;
+    font-size: 13px;
+}
+
+.vc-limelight-primary {
+    flex: none;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: var(--ll-accent);
+    color: var(--ll-on-accent);
+    font-size: 13px;
+    font-weight: var(--ll-weight-heavy);
+}
+
+.vc-limelight-preset-save {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+}
+
+/* A person in the People tab: their row, and a preset dropdown under it */
+.vc-limelight-person-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 8px;
+    border-radius: 10px;
+    background: var(--ll-row);
+}
+
+.vc-limelight-person-card > .vc-limelight-person {
+    background: transparent;
+}
+
+.vc-limelight-person-card > .vc-limelight-select-root {
+    margin: 0 8px;
+}
+
+.vc-limelight-person-card .vc-limelight-select {
+    background: rgba(0, 0, 0, 0.22);
+}
+
+/* The dropdown sits in the flow; its root keeps the list with its button */
+.vc-limelight-select-root {
+    position: relative;
+    min-width: 0;
+}
+
+.vc-limelight-select[aria-disabled="true"],
+.vc-limelight-preset-add[aria-disabled="true"] {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.vc-limelight-menu:focus-visible {
+    outline: 2px solid var(--ll-accent);
+    outline-offset: 2px;
+}
+
+/* Rename or delete presets: one row each, with its own buttons */
+.vc-limelight-preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vc-limelight-preset-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 4px 6px 4px 12px;
+    border-radius: 10px;
+    background: var(--ll-row);
+    color: var(--ll-ink);
+    font-size: 13px;
+}
+
+.vc-limelight-preset-item .vc-limelight-input,
+.vc-limelight-preset-item .vc-limelight-select-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.vc-limelight-preset-done {
+    align-self: flex-start;
+}
+
+/* ------------------------------------------------------------------ health */
+
+/*
+ * The settings page's health view: a header row (section label and Copy report),
+ * a one-line summary with a status dot, the rows in a well grouped by where they
+ * live, a legend and the versions. State chips share the New tag's shape: lime
+ * for Working, plain for Ready, a dashed edge for Waiting and red for Not
+ * working. Every chip's ink and every line of text is contrast checked on what
+ * sits behind it (healthStyle.test.ts). Nothing here moves.
+ */
+.vc-limelight-health {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vc-limelight-health-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.vc-limelight-health-summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    color: var(--ll-ink-label);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.vc-limelight-health-dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: var(--ll-ink-faint);
+}
+
+.vc-limelight-health-summary[data-tone="working"] .vc-limelight-health-dot {
+    background: var(--ll-accent);
+    box-shadow: 0 0 0 3px var(--ll-tag-fill);
+}
+
+.vc-limelight-health-summary[data-tone="broken"] .vc-limelight-health-dot {
+    background: var(--ll-bad-ink);
+    box-shadow: 0 0 0 3px var(--ll-bad-fill);
+}
+
+.vc-limelight-health-list {
+    padding: 2px 0 6px;
+    border-radius: 10px;
+    background: var(--ll-well);
+}
+
+.vc-limelight-health-group {
+    margin: 0;
+    padding: 12px 14px 4px;
+    color: var(--ll-ink-muted);
+    font-size: 11px;
+    font-weight: var(--ll-weight-heavy);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.vc-limelight-health-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vc-limelight-health-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 40px;
+    padding: 6px 14px;
+}
+
+.vc-limelight-health-row + .vc-limelight-health-row {
+    border-top: 1px solid var(--ll-hairline);
+}
+
+.vc-limelight-health-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.vc-limelight-health-label {
+    color: var(--ll-ink);
+    font-size: 13px;
+    font-weight: var(--ll-weight-light);
+}
+
+.vc-limelight-health-note {
+    color: var(--ll-ink-caption);
+    font-size: 12px;
+}
+
+.vc-limelight-health-row[data-state="broken"] .vc-limelight-health-note {
+    color: var(--ll-bad-ink);
+}
+
+.vc-limelight-chip {
+    flex: none;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: var(--ll-weight-heavy);
+    letter-spacing: 0.3px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.vc-limelight-chip[data-state="working"] {
+    background: var(--ll-tag-fill);
+    box-shadow: inset 0 0 0 1px var(--ll-tag-edge);
+    color: var(--ll-accent);
+}
+
+.vc-limelight-chip[data-state="ready"] {
+    background: var(--ll-row-hover);
+    box-shadow: inset 0 0 0 1px var(--ll-field-edge);
+    color: var(--ll-ink-label);
+}
+
+.vc-limelight-chip[data-state="waiting"] {
+    outline: 1px dashed var(--ll-chip-edge);
+    outline-offset: -1px;
+    color: var(--ll-ink-muted);
+}
+
+.vc-limelight-chip[data-state="broken"] {
+    background: var(--ll-bad-fill);
+    box-shadow: inset 0 0 0 1px var(--ll-bad-edge);
+    color: var(--ll-bad-ink);
+}
+
+.vc-limelight-health-legend,
+.vc-limelight-health-versions {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.vc-limelight-health-legend {
+    color: var(--ll-ink-caption);
+}
+
+.vc-limelight-health-versions {
+    color: var(--ll-ink-muted);
 }
 
 /* ------------------------------------------------------------ settings page */

@@ -20,8 +20,10 @@ import { ThemeDot } from "./chat/ThemeDot";
 import { type ParticipantLike } from "./logic/fold";
 import { SettingsPage } from "./panel/DisplayControls";
 import { paletteElement } from "./panel/PaletteButton";
-import { HOOK, patches } from "./patches";
+import { HOOK } from "./patches";
 import { preCallBackground, preCallButtons } from "./precall/PreCall";
+import { startChannelFold, stopChannelFold } from "./runtime/channelFoldRuntime";
+import { startHealth, stopHealth, trackedPatches } from "./runtime/health";
 import { guard, startWatchdog, stopWatchdog } from "./runtime/hookApi";
 import { useHideInvitePrompts } from "./runtime/invitePrompts";
 import { startSheet, stopSheet } from "./runtime/sheet";
@@ -35,9 +37,12 @@ import panelStyle from "./styles/panel.css?managed";
 import pickerStyle from "./styles/picker.css?managed";
 import pillStyle from "./styles/pill.css?managed";
 import precallStyle from "./styles/precall.css?managed";
+import stageStyle from "./styles/stage.css?managed";
 import tilesStyle from "./styles/tiles.css?managed";
 import managedStyle from "./styles/tokens.css?managed";
+import { FoldControls } from "./tiles/FoldControls";
 import { renderOverlay } from "./tiles/Overlay";
+import { type GridProps, SplitGrid } from "./tiles/SplitGrid";
 import { slotClasses, tileClasses } from "./tiles/tileHooks";
 
 // Props Discord gives its tile overlay, plus the component this replaces.
@@ -60,7 +65,10 @@ export default definePlugin({
     description: "Customise the voice call grid: themes for each person or everyone, one tile per person while they stream, and a chat panel that joins the call.",
     authors: [{ name: "dotkay", id: 0n }],
     dependencies: ["MessageDecorationsAPI"],
-    patches,
+    // Copies of patches.ts whose replacements report when they apply, for the
+    // health view; the code they produce is byte for byte the same
+    // (tools/verify-patches.mjs checks it against Discord's real modules)
+    patches: trackedPatches,
     managedStyle,
     settings,
 
@@ -183,6 +191,28 @@ export default definePlugin({
         return guard(HOOK.alone, false, useHideInvitePrompts);
     },
 
+    // The call grid, with its props and the participants its tiles render, for
+    // small tiles. Discord's own grid if building Limelight's throws, here or
+    // while it renders.
+    renderGrid(Grid: ComponentType<GridProps>, props: GridProps, participants: unknown) {
+        return guard<ReactNode>(HOOK.grid, <Grid {...props} />, () => (
+            <ErrorBoundary fallback={() => <Grid {...props} />}>
+                <SplitGrid Grid={Grid} gridProps={props} participants={participants} />
+            </ErrorBoundary>
+        ));
+    },
+
+    // The call view's bottom-left controls: Limelight's « » channel list button
+    // (and, while folded, room for the floating user section) before Discord's own.
+    // Discord's element alone if building Limelight's throws.
+    renderBottomLeft(original: ReactNode) {
+        return guard<ReactNode>(HOOK.foldButton, original, () => (
+            <ErrorBoundary fallback={() => <>{original}</>}>
+                <FoldControls original={original} />
+            </ErrorBoundary>
+        ));
+    },
+
     // True when a channel link clicked inside the call chat was opened there, so
     // Discord's own navigation is skipped. Any failure answers false: Discord's.
     openMentionInCallChat(node: { channelId?: string | null; messageId?: string | null; }) {
@@ -213,6 +243,7 @@ export default definePlugin({
         void loadConfig();
         startImages();
         startSheet();
+        startHealth();
         startWatchdog();
         enableStyle(tilesStyle);
         enableStyle(pillStyle);
@@ -222,6 +253,8 @@ export default definePlugin({
         enableStyle(chatStyle);
         enableStyle(precallStyle);
         enableStyle(pickerStyle);
+        enableStyle(stageStyle);
+        startChannelFold();
         document.addEventListener("click", recordClickOrigin, true);
     },
 
@@ -230,6 +263,7 @@ export default definePlugin({
         stopSheet();
         stopImages();
         stopWatchdog();
+        stopHealth();
         resetStreams();
         disableStyle(tilesStyle);
         disableStyle(pillStyle);
@@ -239,6 +273,8 @@ export default definePlugin({
         disableStyle(chatStyle);
         disableStyle(precallStyle);
         disableStyle(pickerStyle);
+        stopChannelFold();
+        disableStyle(stageStyle);
         document.removeEventListener("click", recordClickOrigin, true);
         resetTargets();
     }

@@ -45,11 +45,12 @@ import {
     textChannelInputType
 } from "../logic/channelPicker";
 import { chatSurface } from "../logic/scrim";
+import { stagePaint } from "../logic/stage";
 import { CHAT_ROOT } from "../logic/styleSheet";
 import { finders, HOOK } from "../patches";
 import { guard } from "../runtime/hookApi";
 import { getConfig, useLimelightConfig } from "../store/configStore";
-import { imageAverage, imageLightest, useImageUrl } from "../store/imageStore";
+import { imageAverage, imageLightest, imageUrl, useImageUrl } from "../store/imageStore";
 import { AnnouncementIcon, ChevronIcon, HashIcon, ReturnIcon, SearchIcon, TickIcon } from "./pickerIcons";
 import { getMountedCallChat, setMountedCallChat, setTarget, useTargetId } from "./pickerStore";
 
@@ -166,20 +167,20 @@ function usePickerData(guildId: string): PickerData {
 }
 
 // The chat's own surface under Follow grid and Own theme, so the picker reads
-// as part of it; null under Discord's look, which keeps Discord's colours (G5)
+// as part of it; null where the chat is Discord's own (its look, or Follow grid on
+// Discord's stage), which keeps Discord's colours (G5)
 function useChatSurface(): string | null {
     const config = useLimelightConfig();
     const ownImage = config.chat.own.type === "image" ? config.chat.own.imageId : undefined;
     const everyoneImage = config.everyone.background.type === "image" ? config.everyone.background.imageId : undefined;
+    const stageImage = config.stage.own.type === "image" ? config.stage.own.imageId : undefined;
     useImageUrl(ownImage);
     useImageUrl(everyoneImage);
+    useImageUrl(stageImage);
     if (config.chat.look === "discord") return null;
-    return chatSurface(
-        config.chat,
-        config.everyone,
-        ownImage ? imageLightest(ownImage) : null,
-        everyoneImage ? imageAverage(everyoneImage) : null
-    );
+    const stage = stagePaint(config, { imageUrl, imageAverage, imageLightest });
+    if (config.chat.look === "follow" && !stage) return null;
+    return chatSurface(config.chat, stage?.washedLightest ?? null, ownImage ? imageLightest(ownImage) : null);
 }
 
 function channelIcon(type: number): ComponentType<any> {

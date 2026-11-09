@@ -13,6 +13,8 @@ import { type CSSProperties } from "react";
 export interface SegmentOption<T extends string> {
     readonly id: T;
     readonly label: string;
+    /** A short tag after the label, such as "New" for a recent option */
+    readonly tag?: string;
 }
 
 interface SegmentedProps<T extends string> {
@@ -45,6 +47,7 @@ export function Segmented<T extends string>({ label, options, value, onChange, d
                     onClick={() => { if (!disabled) onChange(option.id); }}
                 >
                     {option.label}
+                    {option.tag && <span className="vc-limelight-tag">{option.tag}</span>}
                 </button>
             ))}
         </div>

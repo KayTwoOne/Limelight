@@ -173,6 +173,27 @@ export function CloseIcon() {
     );
 }
 
+// The Health toggle's cog, beside the cross: 18px, stroke 2. Eight flat teeth
+// around a hub, drawn from a computed outline (outer radius 9.4, root 6.9).
+export function CogIcon() {
+    return (
+        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinejoin="round" aria-hidden="true">
+            <path d="M10.10 5.37 L10.45 2.73 L13.55 2.73 L13.90 5.37 L15.35 5.97 L17.46 4.35 L19.65 6.54 L18.03 8.65 L18.63 10.10 L21.27 10.45 L21.27 13.55 L18.63 13.90 L18.03 15.35 L19.65 17.46 L17.46 19.65 L15.35 18.03 L13.90 18.63 L13.55 21.27 L10.45 21.27 L10.10 18.63 L8.65 18.03 L6.54 19.65 L4.35 17.46 L5.97 15.35 L5.37 13.90 L2.73 13.55 L2.73 10.45 L5.37 10.10 L5.97 8.65 L4.35 6.54 L6.54 4.35 L8.65 5.97 Z" />
+            <circle cx="12" cy="12" r="3.2" />
+        </svg>
+    );
+}
+
+// The channel list button's double chevron: « to fold the list away, » to bring it
+// back. 18px, stroke 2.2, as the mockup draws it.
+export function FoldIcon({ folded }: { folded: boolean; }) {
+    return (
+        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d={folded ? "m12.5 6 6 6-6 6M5.5 6l6 6-6 6" : "M11.5 6 5.5 12l6 6M18.5 6l-6 6 6 6"} />
+        </svg>
+    );
+}
+
 // The custom swatch's plus (tokens.md 5.9): 16px, stroke 2.6.
 export function PlusIcon() {
     return (

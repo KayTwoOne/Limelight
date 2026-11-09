@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-// The Pre-call tab: which look the screen Discord shows before you join a voice
+// Before you join (in the Stage tab): which look the screen Discord shows before you join a voice
 // channel wears (Discord, Follow grid or Own theme) and, for Own theme, its
 // background. It is the Chat tab's look section for a second surface. Every
 // control writes config.preCall through updateConfig; the stylesheet follows at
@@ -24,7 +24,7 @@ const LOOK_OPTIONS: ReadonlyArray<SegmentOption<PreCallLook>> = [
 
 const LOOK_HINT: Record<PreCallLook, string> = {
     discord: "Discord's own background, as it is now.",
-    follow: "Your call's stage, before anyone joins, so joining feels like one place.",
+    follow: "The stage behind the tiles (In the call), before anyone joins, so joining feels like one place. On Discord's stage it stays as Discord draws it.",
     own: "Its own background. People keep their own tile themes in the preview."
 };
 

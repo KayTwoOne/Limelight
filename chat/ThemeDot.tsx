@@ -17,9 +17,10 @@ import { UserProfileStore, useStateFromStores } from "@webpack/common";
 
 import { normaliseHex } from "../logic/colour";
 import { chatSurface } from "../logic/scrim";
+import { stagePaint } from "../logic/stage";
 import { dotColour, themeFor } from "../logic/theme";
 import { useLimelightConfig } from "../store/configStore";
-import { imageAverage, imageLightest, useImageUrl } from "../store/imageStore";
+import { imageAverage, imageLightest, imageUrl, useImageUrl } from "../store/imageStore";
 
 // A person's profile colour as a hex string, or "" when Discord has none: a
 // primitive, so the store mapper below can compare it with ===.
@@ -39,21 +40,20 @@ export function ThemeDot({ userId }: ThemeDotProps) {
     const themeImage = theme.background.type === "image" ? theme.background.imageId : undefined;
     const ownImage = config.chat.own.type === "image" ? config.chat.own.imageId : undefined;
     const everyoneImage = config.everyone.background.type === "image" ? config.everyone.background.imageId : undefined;
+    const stageImage = config.stage.own.type === "image" ? config.stage.own.imageId : undefined;
     // Subscribed only to re-render when a stored image arrives; the colours are
     // read from the store below.
     useImageUrl(themeImage);
     useImageUrl(ownImage);
     useImageUrl(everyoneImage);
+    useImageUrl(stageImage);
     const profile = useStateFromStores([UserProfileStore], () => profileColour(userId), [userId]);
 
     if (config.chat.look === "discord" || !config.chat.themeDots || config.display.disableUserThemes) return null;
 
     const fallback = themeImage ? imageAverage(themeImage) : profile || null;
-    const surface = chatSurface(
-        config.chat,
-        config.everyone,
-        ownImage ? imageLightest(ownImage) : null,
-        everyoneImage ? imageAverage(everyoneImage) : null
-    );
+    // Follow grid's surface is the stage's (logic/stage.ts)
+    const follow = stagePaint(config, { imageUrl, imageAverage, imageLightest })?.washedLightest ?? null;
+    const surface = chatSurface(config.chat, follow, ownImage ? imageLightest(ownImage) : null);
     return <span className="vc-limelight-dot" aria-hidden="true" style={{ background: dotColour(theme, surface, fallback) }} />;
 }

@@ -4,12 +4,12 @@
 
 **A customisable voice call grid for Discord.**
 
-[![Version](https://img.shields.io/badge/version-1.1.0-A8C43A?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-A8C43A?style=flat-square)](CHANGELOG.md)
 [![Vencord](https://img.shields.io/badge/vencord%20%7C%20equicord-userplugin-9c85ef?style=flat-square)](https://vencord.dev)
 [![Discord](https://img.shields.io/badge/discord-stable-57F287?style=flat-square)](#install)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](LICENSE)
 
-[Install](#install) · [Themes](#themes) · [Streams](#streams) · [The panel](#the-panel) · [Chat](#chat) · [Pre-call](#the-pre-call-screen) · [Changelog](CHANGELOG.md)
+[Install](#install) · [Themes](#themes) · [Streams](#streams) · [The panel](#the-panel) · [Presets](#presets) · [The Stage](#the-stage) · [Health](#health) · [Chat](#chat) · [Pre-call](#the-pre-call-screen) · [Changelog](CHANGELOG.md)
 
 </div>
 
@@ -42,6 +42,14 @@ you change one.
   on screen.
 - **The screen before you join.** The pre-call screen can take the same looks, with a
   Limelight button beside Join Voice that matches your theme.
+- **Presets.** Save a look once, then hand it to anyone from a dropdown.
+- **A stage of your own, wall to wall.** Pick what sits behind the tiles, then fold
+  the channel list away: your user section stands in the server list as a slim
+  strip, nameplate and all, and the stage fills the window.
+- **Bots out of the way.** Bots, or anyone you choose, can take smaller tiles or a
+  single slim chip each, so the people you're talking to keep the space.
+- **Health.** Every part of Limelight says whether it's working, so a Discord update
+  never leaves you guessing.
 - **Sized to the tile.** Pills, avatars and badges scale with each tile, so a call
   reads the same in a small window as it does full screen on an ultrawide.
 - **Stays on your PC.** Themes and images are stored locally for your account.
@@ -89,11 +97,11 @@ panel with five tabs:
 
 | Tab | What it's for |
 | --- | --- |
-| **People** | Everyone in the call right now, with their current theme. Open someone to edit their theme; every other tile dims while you do, so you can see whose tile is changing. **Use Everyone** clears their own theme. |
+| **People** | Everyone in the call right now, with their current theme and a preset dropdown under each. Open someone to edit their theme and tile size; every other tile dims while you do, so you can see whose tile is changing. **Use Everyone** clears their own theme. |
 | **Everyone** | The theme for anyone without one of their own. |
+| **Stage** | **In the call**: the background behind every tile, and the channel list button. **Before you join**: the look of the screen you see before joining a voice channel. |
 | **Chat** | How the call chat looks, how it joins the grid, theme dots and the channel picker. |
-| **Pre-call** | The look of the screen you see before joining a voice channel. |
-| **Display** | Grid zoom, tile corners and spacing, and three switches (below). |
+| **Display** | Grid zoom, tile corners and spacing, three switches and small tiles (below). |
 
 Every change applies live to the real tiles and saves straight away. Escape, the close
 button or the palette button closes it.
@@ -108,9 +116,51 @@ button or the palette button closes it.
 | Disable all user themes | On or off: one calm dark grey for every tile | Off |
 | Auto maximise livestream upon joining | On or off | Off |
 | Hide invite prompts | On or off: no Invite to Voice row under your voice channel, and no empty tile when you're alone in a call | Off |
+| Bots get small tiles | On or off: bots go in a strip of smaller tiles, so the people you're talking to keep the space | Off |
+| Small tile size | Half or Third of a normal tile's width, or Chip: one slim line with avatar, name and mute icons | Half |
+| Small tiles sit | Below or Above the grid | Below |
+
+**Small tiles.** Anyone can be set small, or kept normal, under **Tile size** when you
+open them in People. Small tiles sit in a strip, and the grid of everyone else grows
+into the room the strip leaves. With nobody small, the call looks exactly as before.
+
+**Bots as chips.** With Small tile size on **Chip**, each small person is one slim
+line under the grid: their avatar and name, every kind of mute and deafen, their
+platform, and what they're playing or listening to. It is still Discord's own tile
+underneath, so a click, a right-click and the speaking ring work as they always have.
+
+## Presets
+
+<img src="assets/showcase-presets.png" alt="The Limelight panel on the Everyone tab with the preset dropdown open, Ember applied to three tiles and Night Garden, Harbour and Campfire photo below it, beside a lime Save as preset button" width="100%">
+
+Every theme editor has a **Preset** bar: **Save as preset** names the look
+you're editing (up to 20 presets), and the dropdown puts a saved look on whoever you're
+editing. In People, each person has the same dropdown under their row. Applying a
+preset copies it, so editing a preset later never changes anyone you gave it to.
+
+## The Stage
+
+<img src="assets/showcase-stage.png" alt="A call with the channel list folded away: four themed tiles on a deep blue stage that fills the window, Tunebot and Dicebot as slim chips under the grid, and the user strip standing at the foot of the server list with the green ping icon, an avatar, and mute, deafen and settings over a turned nameplate" width="100%">
+
+Behind the tiles can be Discord's own black, the Everyone theme's stage, or
+a background of its own. The chat's and the pre-call screen's Follow grid follow it.
+Switch on the **Channel list button** and a « button joins the call's controls at the
+bottom left: it folds the channel list away while you're watching the call, so the
+stage fills the window, and » brings it back. While folded, your user section stands
+in the server list as a slim strip: the green ping icon (hover for your ping), then
+your avatar, mute, deafen and settings over your nameplate turned on its side. It is
+Discord's own section, laid out upright, so your avatar decoration shows and clicking
+your avatar opens your profile as always.
+
+## Health
+
+<img src="assets/showcase-health.png" alt="The Limelight panel showing Health: a lime cog beside Close, a Copy report button, and rows for the call grid and the stage, each marked Working or Ready" width="100%">
 
 The same controls are on Limelight's settings page, along with **Reset all Limelight
-themes**.
+themes** and **Health**: every part of Limelight with whether it's working this
+session, and a report you can copy. After a Discord update, Health is the first
+place to look. It's also one click away in the panel, behind the cog beside Close,
+which shows a red dot while anything isn't working.
 
 ## Chat
 
@@ -155,7 +205,7 @@ Before you join, the pre-call screen can stay as **Discord** draws it, take the
 **Follow grid** stage, or use a background of its **Own**. The Limelight button beside
 Join Voice takes its colour from your theme and is contrast checked, so it never sinks
 into the background or turns into a white block next to Join Voice. It opens the panel
-on the Pre-call tab.
+on Stage's Before you join.
 
 ## Install
 
@@ -213,9 +263,9 @@ To update: `git pull` inside `src/userplugins/limelight`, then `pnpm build` and
   control has a visible lime focus ring, and colour is never the only signal: names
   sit beside dots and badges carry text.
 
-## Not in 1.0
+## Not in Limelight yet
 
-- Reordering or resizing individual tiles.
+- Reordering individual tiles.
 - Sharing themes with other people. Your themes are only ever seen on your own client.
 - Threads or other voice channels' chats in the channel picker.
 
