@@ -30,7 +30,8 @@ const RAIL = `${SIDEBAR} > :is([class^="guilds_"],[class*=" guilds_"])`;
 // panels_ classes too (the channel list's, the DM list's), on divs.
 const ANY_PANELS = "section:is([class^=\"panels_\"],[class*=\" panels_\"])";
 export const PANELS = `${SIDEBAR} > ${ANY_PANELS}`;
-const CHECK_MS = 300;
+// After the sidebar's narrowing (--ll-base, 240ms), which the check measures
+const CHECK_MS = 500;
 
 export type FoldHealth = "waiting" | "working" | "broken";
 

@@ -8,7 +8,8 @@
  * The tokens every Limelight stylesheet uses, and the only place their values are
  * written (Tier 1, 9 Nov 2026; tools/tests/system.test.ts holds every sheet to it).
  * They are declared only on Limelight's own elements (the classes its patches
- * add), so a failed patch leaves nothing of Limelight's in Discord's tree.
+ * add), so a failed patch leaves nothing of Limelight's in Discord's tree, and on
+ * body while the channel list is folded, for the fold's own motion.
  *
  * The channel picker is the one exception: it mirrors Discord's own channel list,
  * so it keeps Discord's weights, colours and corners (picker.css).
@@ -17,7 +18,8 @@
 .limelight-tile,
 .limelight-slot,
 .ll-pill,
-[class*="vc-limelight-"] {
+[class*="vc-limelight-"],
+body.limelight-folded {
     /* The accent, and what sits on it */
     --ll-accent: #d8f35a;
     --ll-accent-tint: rgba(216, 243, 90, 0.12);
@@ -91,7 +93,8 @@
     .limelight-tile,
     .limelight-slot,
     .ll-pill,
-    [class*="vc-limelight-"] {
+    [class*="vc-limelight-"],
+    body.limelight-folded {
         --ll-quick: 1ms;
         --ll-base: 1ms;
         --ll-calm: 1ms;

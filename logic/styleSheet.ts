@@ -10,7 +10,7 @@
 import { rgba } from "./colour";
 import { type Background, DISCORD_GREEN, type LimelightConfig, PRESET_GREY } from "./config";
 import { lightestOf, scrimAlpha } from "./scrim";
-import { stagePaint } from "./stage";
+import { shadeTint, stagePaint, stageShade } from "./stage";
 import { backgroundCss, CORNER_PX, FOLLOW_WASH_ALPHA, FOLLOW_WASH_HEX, SPOTLIGHT_OPACITY } from "./theme";
 
 export const CALL = ":is([class^=\"callContainer_\"],[class*=\" callContainer_\"])";
@@ -101,7 +101,9 @@ function stageRules(input: SheetInput): string[] {
         `${CALL_WRAPPER} > ${CALL}{background:transparent}`,
         // Inside it, Discord's call layout root fills the container and paints
         // black as well (Kaylum, 9 Nov)
-        `${CALL_WRAPPER} > ${CALL} ${LAYOUT_ROOT}{background:transparent}`
+        `${CALL_WRAPPER} > ${CALL} ${LAYOUT_ROOT}{background:transparent}`,
+        // Discord's black shading behind the header and controls, in the stage's dark
+        ...(stage.deep ? [`${CALL_WRAPPER} > ${CALL} :is([class^="gradientContainer_"],[class*=" gradientContainer_"]){background-image:${stageShade(shadeTint(stage.deep))}}`] : [])
     ];
 }
 

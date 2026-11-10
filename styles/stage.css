@@ -14,6 +14,18 @@ body.limelight-folded {
     --custom-guild-sidebar-width: var(--ll-rail-width) !important;
 }
 
+/* Tier 3: the channel list narrows instead of vanishing, so you see where it went.
+   Only while folding: unfolding drops the class, and with it this transition. */
+body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]),
+body.limelight-folded :is([class^="sidebarList_"], [class*=" sidebarList_"]) {
+    transition: width var(--ll-base) var(--ll-ease);
+}
+
+/* Opacity only: the fold's self-check measures where the strip stands */
+@keyframes ll-strip-in {
+    from { opacity: 0; }
+}
+
 /*
  * Discord's own user section stands in the server list as a strip (approved
  * mockup, 9 Nov 2026): the green ping icon on its own block, then your avatar,
@@ -40,6 +52,7 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
     flex-direction: column;
     gap: 0;
     padding: 0;
+    animation: ll-strip-in var(--ll-base) var(--ll-ease) var(--ll-delay-2) backwards;
 }
 
 /* Everything in the section but the voice panel and the account row */

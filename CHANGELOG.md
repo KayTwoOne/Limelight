@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.3 - 2026-11-10
+
+Motion that shows where things go, and a stage that reaches the controls.
+
+- **The channel list folds where you can see it.** It narrows into the server list
+  instead of vanishing, and the strip fades in at its foot.
+- **Speaking rings ease in** instead of blinking on.
+- **Chips rise into place** as someone joins.
+- **The shading behind the call's header and controls takes your stage's colour.**
+  Discord's black bands use the stage's darkest colour, darkened so white text
+  stays readable. Discord's own stage keeps the black.
+- With reduced motion on, all of it is instant.
+
 ## 1.2.2 - 2026-11-10
 
 A calmer panel. Nothing new to learn; everything is a little quieter and more

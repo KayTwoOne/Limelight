@@ -73,6 +73,16 @@
  * While a person is live the tile-edge ring is hidden and the pill carries it.
  * The inline box-shadow Discord writes needs !important to lose.
  */
+/* Tier 3: Discord mounts the ring only while someone speaks, so it can fade in but
+   not out; the fade softens the blink as speech starts and stops */
+.limelight-tile :is([class^="border_"],[class*=" border_"]) {
+    animation: ll-ring-in var(--ll-quick) var(--ll-ease);
+}
+
+@keyframes ll-ring-in {
+    from { opacity: 0; }
+}
+
 @media not (forced-colors: active) {
     .limelight-tile.limelight-live :is([class^="border_"],[class*=" border_"]):not(:is([class^="voiceChannelEffect_"],[class*=" voiceChannelEffect_"])) {
         box-shadow: none !important;
@@ -140,6 +150,12 @@
     max-width: 320px;
     border-radius: var(--custom-base-tile-border-radius, 8px);
     overflow: hidden;
+    animation: ll-chip-in var(--ll-base) var(--ll-ease);
+}
+
+/* A chip rises 8px into place as someone joins; its self-check measures size, not place */
+@keyframes ll-chip-in {
+    from { opacity: 0; transform: translateY(8px); }
 }
 
 .vc-limelight-tilechip-tile {
