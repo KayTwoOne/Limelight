@@ -20,7 +20,7 @@
    its width as cqw. */
 .limelight-tile {
     container: ll-tile / inline-size;
-    transition: border-radius 260ms ease, filter 280ms ease;
+    transition: border-radius var(--ll-base) var(--ll-ease), filter var(--ll-base) var(--ll-ease);
 }
 
 /* The slot (the root Discord sizes) is the spacing container. */
@@ -53,9 +53,9 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(58% 78% at 50% -12%, rgba(255, 246, 210, 0.22) 0%, rgba(255, 246, 210, 0.07) 42%, rgba(255, 246, 210, 0) 70%);
+    background: radial-gradient(58% 78% at 50% -12%, rgb(var(--ll-spot-rgb) / 0.22) 0%, rgb(var(--ll-spot-rgb) / 0.07) 42%, rgb(var(--ll-spot-rgb) / 0) 70%);
     opacity: var(--ll-spot, 0);
-    transition: opacity 320ms ease;
+    transition: opacity var(--ll-calm) var(--ll-ease);
 }
 
 .limelight-tile.limelight-live :is([class^="content_"],[class*=" content_"]) > [class*="background_"]::after {
@@ -78,15 +78,6 @@
         box-shadow: none !important;
     }
 }
-
-@media (prefers-reduced-motion: reduce) {
-    .limelight-tile,
-    .limelight-tile :is([class^="content_"],[class*=" content_"]) > [class*="background_"]::after {
-        transition-duration: 1ms;
-        transition-delay: 0ms;
-    }
-}
-
 /*
  * Small tiles (tiles/SplitGrid.tsx): Discord's grid twice, in a column. The main
  * grid takes what the strip leaves; the strip's height is solved in JS so a small
@@ -197,9 +188,9 @@
 .vc-limelight-tilechip-name {
     min-width: 0;
     overflow: hidden;
-    color: #fff;
+    color: var(--ll-ink);
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--ll-weight-heavy);
     line-height: 18px;
     text-overflow: ellipsis;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
@@ -234,7 +225,7 @@
     flex: none;
     width: 16px;
     height: 16px;
-    border-radius: 4px;
+    border-radius: var(--ll-radius-s);
 }
 
 .vc-limelight-tilechip-act-text {
@@ -242,7 +233,7 @@
     overflow: hidden;
     color: rgba(255, 255, 255, 0.82);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--ll-weight-light);
     line-height: 18px;
     text-overflow: ellipsis;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);

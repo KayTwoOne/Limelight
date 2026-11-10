@@ -28,14 +28,14 @@
 .limelight-tile .ll-pill[data-focused="true"] {
     interpolate-size: allow-keywords;
     transition:
-        box-shadow 300ms ease,
-        background 300ms ease,
-        opacity 240ms ease,
+        box-shadow var(--ll-calm) var(--ll-ease),
+        background var(--ll-calm) var(--ll-ease),
+        opacity var(--ll-base) var(--ll-ease),
         width var(--ll-move) var(--ll-ease) var(--ll-delay-1);
 }
 
 .limelight-tile .ll-pill[data-focused="true"] > :not(.ll-pill-avatar) {
-    transition: opacity 240ms ease;
+    transition: opacity var(--ll-base) var(--ll-ease);
 }
 
 .limelight-tile .ll-pill[data-collapsed="true"] {
@@ -51,7 +51,7 @@
  * grid's corner setting (tokens.md 4.3).
  */
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile {
-    --custom-base-tile-border-radius: 8px;
+    --custom-base-tile-border-radius: var(--ll-radius-m);
 }
 
 /*
@@ -66,11 +66,11 @@
     width: 30px;
     height: 30px;
     padding: 0;
-    border-radius: 15px;
+    border-radius: var(--ll-radius-full);
 }
 
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile .ll-pill[data-live="true"] {
-    background: rgba(12, 13, 15, 0.86);
+    background: var(--ll-overlay);
     backdrop-filter: none;
     box-shadow:
         0 0 0 2px color-mix(in srgb, var(--ll-ring, var(--status-speaking)) 0%, transparent),
@@ -119,16 +119,16 @@
     box-sizing: border-box;
     height: 16px;
     padding: 0 5px;
-    border-radius: 4px;
-    background: #da373c;
-    color: #ffffff;
+    border-radius: var(--ll-radius-s);
+    background: var(--ll-live);
+    color: var(--ll-on-live);
     font-family: var(--font-primary);
     font-size: 9px;
-    font-weight: 800;
+    font-weight: var(--ll-weight-heavy);
     letter-spacing: 0.6px;
     line-height: 1;
     pointer-events: none;
-    animation: ll-strip-fade 260ms ease;
+    animation: ll-strip-fade var(--ll-base) var(--ll-ease);
 }
 
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile :is([class^="liveIndicator_"],[class*=" liveIndicator_"]) {
@@ -159,7 +159,7 @@
  */
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile.limelight-live :is([class^="streamPreview_"],[class*=" streamPreview_"]) > :is([class^="absoluteFill_"],[class*=" absoluteFill_"]),
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile.limelight-live :is([class^="content_"],[class*=" content_"]):not(:is([class^="streamPreview_"],[class*=" streamPreview_"])):not(.limelight-tile :is([class^="content_"],[class*=" content_"]) :is([class^="content_"],[class*=" content_"])) {
-    transition: filter 480ms ease;
+    transition: filter var(--ll-fade) var(--ll-ease);
 }
 
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile.limelight-live:not(:has(:is([class^="selectedScreen_"],[class*=" selectedScreen_"]))) :is([class^="streamPreview_"],[class*=" streamPreview_"]) > :is([class^="absoluteFill_"],[class*=" absoluteFill_"]),
@@ -175,11 +175,11 @@
  * Eye marker (tokens.md 4.3): Discord's scrim and icon on the selected tile are
  * replaced by a 24px chip at 6px, bottom right, holding a 14px eye. The chip and
  * the eye are the scrim's two pseudo-elements; the eye is a mask so it takes the
- * mockup's #f2f3f5 stroke at 2.2.
+ * mockup's var(--ll-ink) stroke at 2.2.
  */
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile :is([class^="selectedScreen_"],[class*=" selectedScreen_"]) {
     background: none;
-    animation: ll-strip-fade 260ms ease;
+    animation: ll-strip-fade var(--ll-base) var(--ll-ease);
 }
 
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile :is([class^="selectedScreen_"],[class*=" selectedScreen_"]) :is([class^="selectedIcon_"],[class*=" selectedIcon_"]) {
@@ -193,8 +193,8 @@
     bottom: 6px;
     width: 24px;
     height: 24px;
-    border-radius: 7px;
-    background: rgba(12, 13, 15, 0.86);
+    border-radius: calc(var(--ll-radius-m) - 1px);
+    background: var(--ll-overlay);
 }
 
 :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile :is([class^="selectedScreen_"],[class*=" selectedScreen_"])::after {
@@ -204,26 +204,10 @@
     bottom: 11px;
     width: 14px;
     height: 14px;
-    background: #f2f3f5;
+    background: var(--ll-ink);
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 @keyframes ll-strip-fade {
     from { opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .limelight-tile .ll-pill[data-focused="true"],
-    .limelight-tile .ll-pill[data-focused="true"] > :not(.ll-pill-avatar),
-    :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile.limelight-live :is([class^="streamPreview_"],[class*=" streamPreview_"]) > :is([class^="absoluteFill_"],[class*=" absoluteFill_"]),
-    :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile.limelight-live :is([class^="content_"],[class*=" content_"]):not(:is([class^="streamPreview_"],[class*=" streamPreview_"])):not(.limelight-tile :is([class^="content_"],[class*=" content_"]) :is([class^="content_"],[class*=" content_"])) {
-        transition-duration: 1ms;
-        transition-delay: 0ms;
-    }
-
-    :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile .ll-strip-live,
-    :is([class^="participantsWrapperAnimated_"],[class*=" participantsWrapperAnimated_"]) .limelight-tile :is([class^="selectedScreen_"],[class*=" selectedScreen_"]) {
-        animation-duration: 1ms;
-        animation-delay: 0ms;
-    }
 }

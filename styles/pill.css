@@ -42,18 +42,18 @@
     height: calc(40px * var(--ll-s));
     padding-inline: calc(12px * var(--ll-s)) calc(14px * var(--ll-s));
     border-radius: calc(20px * var(--ll-s));
-    background: rgba(12, 13, 15, 0.82);
+    background: var(--ll-overlay);
     backdrop-filter: blur(10px);
     box-shadow:
         0 0 0 2px color-mix(in srgb, var(--ll-ring, var(--status-speaking)) 0%, transparent),
         0 6px 18px rgba(0, 0, 0, 0.35);
-    color: #f2f3f5;
+    color: var(--ll-ink);
     font-family: var(--font-primary);
     letter-spacing: 0.1px;
     white-space: nowrap;
     pointer-events: none;
     user-select: none;
-    transition: box-shadow 300ms ease, background 300ms ease, opacity 240ms ease;
+    transition: box-shadow var(--ll-calm) var(--ll-ease), background var(--ll-calm) var(--ll-ease), opacity var(--ll-base) var(--ll-ease);
 }
 
 /* The avatar leads a live pill: 7px in, 26px wide, 9px before the name. */
@@ -74,7 +74,7 @@
 /* Weight extremes inside Discord's own stack: 800 for the name, 400 beside it. */
 .limelight-tile .ll-pill-name {
     font-size: calc(14px * var(--ll-s));
-    font-weight: 800;
+    font-weight: var(--ll-weight-heavy);
     line-height: calc(20px * var(--ll-s));
 }
 
@@ -110,7 +110,7 @@
     gap: calc(5px * var(--ll-s));
     color: #c9ccd1;
     font-size: calc(13px * var(--ll-s));
-    font-weight: 400;
+    font-weight: var(--ll-weight-light);
     line-height: calc(20px * var(--ll-s));
 }
 
@@ -167,11 +167,4 @@
    always in the tree and empty unless it has something to say. */
 .limelight-tile:has(:is([class^="overlayTop_"],[class*=" overlayTop_"]):not(:empty)) .ll-pill {
     top: 50px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .limelight-tile .ll-pill {
-        transition-duration: 1ms;
-        transition-delay: 0ms;
-    }
 }

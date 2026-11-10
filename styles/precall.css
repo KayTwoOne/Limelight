@@ -72,7 +72,7 @@ html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button 
     color: var(--ll-pc-ink) !important;
     /* Discord's own button timing for a hover; it replaces the colour
        transitions, which have nothing to do now that the fill is a variable. */
-    transition: filter 0.15s ease-out;
+    transition: filter var(--ll-quick) var(--ll-ease);
 }
 
 /* The mark sets its own colour (the lime accent, panel.css), which would
@@ -90,10 +90,4 @@ html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button 
 
 html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button > button:active:not(:disabled) {
     filter: brightness(0.94);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    html:not(.enable-forced-colors) .limelight-precall .vc-limelight-precall-button > button {
-        transition: none;
-    }
 }

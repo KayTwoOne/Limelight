@@ -8,71 +8,27 @@
  * The palette button and the popover (tokens.md section 5, spec 6 and 10).
  * Every selector starts at a .vc-limelight-* class (the tray, the popover, the
  * swatches, the picker), classes only Limelight's own components add, so nothing
- * here can touch Discord's UI if the tray patch did not apply. Nothing in this
- * file animates: Discord fades the popover in and out itself (and instantly
- * under reduced motion).
+ * here can touch Discord's UI if the tray patch did not apply. The popover itself
+ * doesn't animate: Discord fades it in and out (and instantly under reduced
+ * motion). Only the switches move, on the motion tokens.
  *
  * Type uses Discord's stacks (constraints.md): body text is --font-primary and
  * the wordmark is --font-display. Weights go to the extremes inside them, as
- * in the pill: tokens.md gives 600 and 700 for labels, built here as 800 against
- * 400 captions. The two weights are the variables below, so flipping back to the
- * mockup's 600 is one line each.
+ * in the pill. Every colour, corner, weight and timing here is a token from
+ * tokens.css (Tier 1, 9 Nov 2026).
  */
-
-/* ------------------------------------------------------------------ tokens */
-
-.vc-limelight-tray {
-    --ll-accent-tint: rgba(216, 243, 90, 0.12);
-    --ll-on-accent: #11120d;
-}
-
-.vc-limelight-popover {
-    /* Surfaces (tokens.md 8.3) */
-    --ll-surface: #1a1b1e;
-    --ll-well: #111214;
-    --ll-row: rgba(255, 255, 255, 0.035);
-    --ll-row-hover: rgba(255, 255, 255, 0.06);
-    --ll-grey: #2b2d31;
-    --ll-icon-disc: #26282c;
-    --ll-live: #da373c;
-    --ll-on-live: #ffffff;
-    --ll-on-accent: #11120d;
-    --ll-tag-fill: rgba(216, 243, 90, 0.12);
-    --ll-tag-edge: rgba(216, 243, 90, 0.3);
-    /* Not working, in the health view: the same red as Reset's danger button */
-    --ll-bad-ink: #f5898d;
-    --ll-bad-fill: rgba(218, 55, 60, 0.16);
-    --ll-bad-edge: rgba(218, 55, 60, 0.45);
-
-    /* Text, brightest to faintest */
-    --ll-ink: #f2f3f5;
-    --ll-ink-label: #dbdee1;
-    --ll-ink-secondary: #b5bac1;
-    --ll-ink-caption: #a3a9b2;
-    --ll-ink-muted: #949ba4;
-    --ll-ink-faint: #80848e;
-
-    /* Edges */
-    --ll-hairline: rgba(255, 255, 255, 0.06);
-    --ll-edge: rgba(255, 255, 255, 0.08);
-    --ll-field-edge: rgba(255, 255, 255, 0.12);
-    --ll-swatch-edge: rgba(255, 255, 255, 0.14);
-    --ll-chip-edge: rgba(255, 255, 255, 0.16);
-
-    /* Weight extremes */
-    --ll-weight-heavy: 800;
-    --ll-weight-light: 400;
-}
 
 /* ------------------------------------------------------------ palette button */
 
 /*
  * The span Limelight owns around Discord's tray button (the Popout's target).
  * The button itself keeps Discord's size and radius; Limelight adds the lime
- * (tokens.md 5.1): a 2px lime ring always, a 12% lime fill with a lime glyph
- * while closed, a solid lime fill with ink while open. The class is doubled so
- * the rules outrank Discord's own hover and active colours on the same button,
- * and 44px is the floor for the hit target (D5).
+ * (tokens.md 5.1): a 2px lime ring and a lime glyph always, over a 12% lime fill
+ * while closed and a stronger one on hover and while open. The glyph never
+ * changes colour: Discord's own open background can win over Limelight's fill, and
+ * a dark glyph then vanished on it (Kaylum, 10 Nov). The class is doubled so the
+ * rules outrank Discord's hover colours, and 44px is the floor for the hit target
+ * (D5).
  */
 .vc-limelight-tray {
     display: flex;
@@ -86,12 +42,12 @@
 }
 
 .vc-limelight-tray.vc-limelight-tray button:hover {
-    background: rgba(216, 243, 90, 0.2);
+    background: var(--ll-accent-tint-strong);
 }
 
 .vc-limelight-tray.vc-limelight-tray[data-open="true"] button,
 .vc-limelight-tray.vc-limelight-tray[data-open="true"] button:hover {
-    background: var(--ll-accent);
+    background: var(--ll-accent-tint-strong);
 }
 
 .vc-limelight-tray.vc-limelight-tray .vc-limelight-tray-icon {
@@ -100,10 +56,6 @@
     fill: none;
     stroke: currentColor;
     color: var(--ll-accent);
-}
-
-.vc-limelight-tray.vc-limelight-tray[data-open="true"] .vc-limelight-tray-icon {
-    color: var(--ll-on-accent);
 }
 
 /* D7: the lime focus ring (tokens.md 5.12), outside the always-on 2px ring. */
@@ -131,7 +83,7 @@
     width: 420px;
     max-height: var(--reference-position-layer-max-height, 90vh);
     overflow: hidden;
-    border-radius: 14px;
+    border-radius: var(--ll-radius-xl);
     background: var(--ll-surface);
     box-shadow: 0 0 0 1px var(--ll-edge), 0 24px 64px rgba(0, 0, 0, 0.6);
     color: var(--ll-ink);
@@ -202,7 +154,7 @@
     justify-content: center;
     width: 44px;
     height: 44px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     color: var(--ll-ink-secondary);
 }
 
@@ -231,7 +183,7 @@
     justify-content: center;
     width: 44px;
     height: 44px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     color: var(--ll-ink-secondary);
 }
 
@@ -291,7 +243,7 @@
     bottom: -1px;
     left: 10px;
     height: 2px;
-    border-radius: 2px;
+    border-radius: var(--ll-radius-full);
     background: transparent;
 }
 
@@ -337,17 +289,19 @@
     gap: 6px;
 }
 
+/* A field inside a section (From, To, Colour): quieter than the section label
+   above it, so the section leads */
 .vc-limelight-field-label {
-    color: var(--ll-ink-label);
-    font-size: 13px;
-    font-weight: var(--ll-weight-heavy);
+    color: var(--ll-ink-caption);
+    font-size: 12px;
+    font-weight: var(--ll-weight-light);
 }
 
-/* Wraps only if the room runs out (a scrollbar on a short window), so a swatch
-   is never clipped. */
+/* Seven swatches and the custom one on one row: eight columns that give a little
+   when a scrollbar takes room, so "+" never wraps alone. */
 .vc-limelight-swatch-row {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 44px));
     gap: 4px;
 }
 
@@ -359,10 +313,8 @@
    2px lime ring (tokens.md 5.9). */
 .vc-limelight-swatch {
     position: relative;
-    flex: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    aspect-ratio: 1;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-swatch);
     box-shadow: inset 0 0 0 1px var(--ll-swatch-edge);
 }
@@ -397,7 +349,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: calc(var(--ll-radius-l) - 4px);
     background: var(--ll-swatch, var(--ll-surface));
     color: var(--ll-ink);
 }
@@ -421,7 +373,7 @@
     gap: 10px;
     margin-top: 4px;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-well);
     box-shadow: inset 0 0 0 1px var(--ll-hairline);
 }
@@ -429,7 +381,7 @@
 .vc-limelight-sv {
     position: relative;
     height: 136px;
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     background:
         linear-gradient(to top, #000000, rgba(0, 0, 0, 0)),
         linear-gradient(to right, #ffffff, var(--ll-hue));
@@ -450,7 +402,7 @@
     content: "";
     position: absolute;
     inset: 14px 0;
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
 }
 
@@ -500,7 +452,7 @@
     flex: none;
     width: 44px;
     height: 44px;
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     background: var(--ll-picked);
     box-shadow: inset 0 0 0 1px var(--ll-chip-edge);
 }
@@ -519,7 +471,7 @@
     min-width: 0;
     height: 44px;
     padding: 0 10px;
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     background: var(--ll-surface);
     box-shadow: inset 0 0 0 1px var(--ll-field-edge);
     color: var(--ll-ink-faint);
@@ -560,7 +512,7 @@
     flex: none;
     min-height: 44px;
     padding: 0 16px;
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     background: var(--ll-accent);
     color: var(--ll-on-accent);
     font-family: var(--font-primary);
@@ -621,13 +573,13 @@
     grid-template-columns: repeat(var(--ll-cols, 3), minmax(0, 1fr));
     gap: 4px;
     padding: 4px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-well);
 }
 
 .vc-limelight-segment {
     min-height: 44px;
-    border-radius: 7px;
+    border-radius: calc(var(--ll-radius-l) - 3px);
     color: var(--ll-ink-label);
     font-size: 13px;
     font-weight: var(--ll-weight-heavy);
@@ -637,18 +589,14 @@
     background: var(--ll-row-hover);
 }
 
+/* Chosen: a raised surface with lime text. Solid lime is kept for a view's one
+   main action (Tier 2, 9 Nov 2026). */
 .vc-limelight-segment[aria-pressed="true"] {
-    background: var(--ll-accent);
-    color: var(--ll-on-accent);
+    background: var(--ll-grey);
+    box-shadow: inset 0 0 0 1px var(--ll-field-edge);
+    color: var(--ll-accent);
 }
 
-/* A New tag on the chosen option: lime on lime would vanish, so it takes the
-   on-accent ink over a faint dark tint */
-.vc-limelight-segment[aria-pressed="true"] .vc-limelight-tag {
-    background: rgba(17, 18, 13, 0.14);
-    box-shadow: none;
-    color: var(--ll-on-accent);
-}
 
 /* Disabled (the Join control under the Discord look): dimmed and inert, still
    focusable and still showing the stored choice. */
@@ -703,7 +651,7 @@
     width: 100%;
     min-height: 62px;
     padding: 0 10px 0 12px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-row);
     color: var(--ll-ink);
     text-align: left;
@@ -743,18 +691,18 @@
     flex: none;
     width: 14px;
     height: 14px;
-    border-radius: 4px;
+    border-radius: var(--ll-radius-s);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .vc-limelight-live {
     flex: none;
     padding: 3px 7px;
-    border-radius: 5px;
+    border-radius: var(--ll-radius-s);
     background: var(--ll-live);
     color: var(--ll-on-live);
     font-size: 11px;
-    font-weight: 800;
+    font-weight: var(--ll-weight-heavy);
     letter-spacing: 0.6px;
 }
 
@@ -785,7 +733,7 @@
     gap: 4px;
     min-height: 44px;
     padding: 0 10px 0 4px;
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     color: var(--ll-ink-secondary);
     font-size: 14px;
     font-weight: var(--ll-weight-heavy);
@@ -828,7 +776,7 @@
     min-height: 44px;
     padding: 0 12px;
     border: 1px solid var(--ll-field-edge);
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     color: var(--ll-ink-label);
     font-size: 13px;
     font-weight: var(--ll-weight-heavy);
@@ -862,7 +810,7 @@
     position: relative;
     flex: none;
     height: 92px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     overflow: hidden;
     box-shadow: inset 0 0 0 1px var(--ll-hairline);
 }
@@ -870,7 +818,7 @@
 .vc-limelight-preview-spot {
     position: absolute;
     inset: 0;
-    background: radial-gradient(58% 90% at 50% -14%, rgba(255, 246, 210, 0.24) 0%, rgba(255, 246, 210, 0) 72%);
+    background: radial-gradient(58% 90% at 50% -14%, rgb(var(--ll-spot-rgb) / 0.24) 0%, rgb(var(--ll-spot-rgb) / 0) 72%);
 }
 
 .vc-limelight-preview-disc {
@@ -890,12 +838,40 @@
     top: 8px;
     left: 8px;
     padding: 3px 8px;
-    border-radius: 10px;
-    background: rgba(12, 13, 15, 0.8);
+    border-radius: var(--ll-radius-l);
+    background: var(--ll-overlay);
     color: var(--ll-ink-label);
     font-size: 11px;
     font-weight: var(--ll-weight-heavy);
     letter-spacing: 0.4px;
+}
+
+/* The stage's preview: two tiles in the Everyone theme and a chip under them, so a
+   stage is judged against what sits on it */
+.vc-limelight-stage-tiles {
+    position: absolute;
+    inset: auto 0 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 68px);
+    justify-content: center;
+    gap: 4px;
+}
+
+.vc-limelight-stage-tiles > span {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--ll-radius-s);
+    background: var(--ll-tile);
+    box-shadow: inset 0 0 0 1px var(--ll-edge);
+}
+
+.vc-limelight-stage-tiles > span:last-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: 40px;
+    height: 8px;
+    aspect-ratio: auto;
+    border-radius: var(--ll-radius-full);
+    background: var(--ll-grey);
 }
 
 /* ------------------------------------------------------------- angle slider */
@@ -933,7 +909,7 @@
     align-items: center;
     gap: 12px;
     padding: 10px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-well);
 }
 
@@ -944,7 +920,7 @@
     justify-content: center;
     width: 112px;
     height: 63px;
-    border-radius: 7px;
+    border-radius: calc(var(--ll-radius-l) - 3px);
     background-color: var(--ll-surface);
     background-position: center;
     background-repeat: no-repeat;
@@ -1029,7 +1005,7 @@
     width: 100%;
     min-height: 60px;
     padding: 0 14px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-row);
     color: var(--ll-ink);
     text-align: left;
@@ -1062,7 +1038,7 @@
     /* The negative block margins keep the label's line as tall as a plain label's */
     margin: -2px 0 -2px 8px;
     padding: 3px 6px;
-    border-radius: 999px;
+    border-radius: var(--ll-radius-full);
     background: var(--ll-tag-fill);
     box-shadow: inset 0 0 0 1px var(--ll-tag-edge);
     color: var(--ll-accent);
@@ -1084,9 +1060,9 @@
     flex: none;
     width: 40px;
     height: 24px;
-    border-radius: 12px;
+    border-radius: var(--ll-radius-full);
     background: rgba(255, 255, 255, 0.16);
-    transition: background 200ms ease;
+    transition: background var(--ll-base) var(--ll-ease);
 }
 
 .vc-limelight-switch-knob {
@@ -1097,7 +1073,7 @@
     height: 18px;
     border-radius: 50%;
     background: #e9e7df;
-    transition: left 220ms var(--ll-ease), background 200ms ease;
+    transition: left var(--ll-base) var(--ll-ease), background var(--ll-base) var(--ll-ease);
 }
 
 .vc-limelight-switch-row[aria-checked="true"] .vc-limelight-switch-track {
@@ -1124,7 +1100,7 @@
     min-height: 44px;
     padding: 0 12px;
     border: 1px solid var(--ll-field-edge);
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     background: var(--ll-well);
     color: var(--ll-ink);
     font-size: 13px;
@@ -1168,7 +1144,7 @@
 .vc-limelight-menu {
     margin: 6px 0 0;
     padding: 4px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-well);
     box-shadow: 0 0 0 1px var(--ll-field-edge), 0 16px 32px rgba(0, 0, 0, 0.5);
     list-style: none;
@@ -1180,7 +1156,7 @@
     gap: 10px;
     min-height: 40px;
     padding: 0 10px;
-    border-radius: 7px;
+    border-radius: calc(var(--ll-radius-l) - 3px);
     color: var(--ll-ink-label);
     font-size: 13px;
 }
@@ -1221,7 +1197,7 @@
     min-height: 44px;
     padding: 0 12px;
     border: 1px solid var(--ll-accent);
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     background: var(--ll-well);
     color: var(--ll-ink);
     font: inherit;
@@ -1232,7 +1208,7 @@
     flex: none;
     min-height: 44px;
     padding: 0 14px;
-    border-radius: 8px;
+    border-radius: var(--ll-radius-m);
     background: var(--ll-accent);
     color: var(--ll-on-accent);
     font-size: 13px;
@@ -1251,7 +1227,7 @@
     flex-direction: column;
     gap: 6px;
     padding-bottom: 8px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-row);
 }
 
@@ -1300,7 +1276,7 @@
     gap: 10px;
     min-height: 52px;
     padding: 4px 6px 4px 12px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-row);
     color: var(--ll-ink);
     font-size: 13px;
@@ -1370,7 +1346,7 @@
 
 .vc-limelight-health-list {
     padding: 2px 0 6px;
-    border-radius: 10px;
+    border-radius: var(--ll-radius-l);
     background: var(--ll-well);
 }
 
@@ -1428,7 +1404,7 @@
 .vc-limelight-chip {
     flex: none;
     padding: 4px 8px;
-    border-radius: 999px;
+    border-radius: var(--ll-radius-full);
     font-size: 11px;
     font-weight: var(--ll-weight-heavy);
     letter-spacing: 0.3px;
@@ -1436,10 +1412,12 @@
     white-space: nowrap;
 }
 
+/* Working recedes to a quiet tick (HealthPanel.tsx), so colour is left for what
+   needs a look */
 .vc-limelight-chip[data-state="working"] {
-    background: var(--ll-tag-fill);
-    box-shadow: inset 0 0 0 1px var(--ll-tag-edge);
-    color: var(--ll-accent);
+    display: flex;
+    padding: 0;
+    color: var(--ll-ink-muted);
 }
 
 .vc-limelight-chip[data-state="ready"] {
@@ -1501,18 +1479,10 @@
    it opens is Discord's own, with a red confirm. */
 .vc-limelight-outline.vc-limelight-danger {
     align-self: flex-start;
-    border-color: rgba(218, 55, 60, 0.6);
-    color: #f5898d;
+    border-color: var(--ll-bad-edge);
+    color: var(--ll-bad-ink);
 }
 
 .vc-limelight-outline.vc-limelight-danger:hover {
-    background: rgba(218, 55, 60, 0.14);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .vc-limelight-switch-track,
-    .vc-limelight-switch-knob {
-        transition-duration: 1ms;
-        transition-delay: 0ms;
-    }
+    background: var(--ll-bad-fill);
 }

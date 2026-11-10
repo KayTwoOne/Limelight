@@ -6,4 +6,4 @@
 
 // Limelight's version, shown in the health report. tools/tests/health.test.ts
 // fails unless it matches the changelog's newest entry and the README badge.
-export const VERSION = "1.2.1";
+export const VERSION = "1.2.2";

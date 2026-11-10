@@ -5,18 +5,81 @@
  */
 
 /*
- * The tokens every Limelight stylesheet uses. They are declared only on
- * Limelight's own elements (the classes its patches add), so a failed patch
- * leaves nothing of Limelight's in Discord's tree. Easing and durations are
- * tokens.md section 3; reduced motion makes every one of them instant.
+ * The tokens every Limelight stylesheet uses, and the only place their values are
+ * written (Tier 1, 9 Nov 2026; tools/tests/system.test.ts holds every sheet to it).
+ * They are declared only on Limelight's own elements (the classes its patches
+ * add), so a failed patch leaves nothing of Limelight's in Discord's tree.
+ *
+ * The channel picker is the one exception: it mirrors Discord's own channel list,
+ * so it keeps Discord's weights, colours and corners (picker.css).
  */
 
 .limelight-tile,
 .limelight-slot,
 .ll-pill,
 [class*="vc-limelight-"] {
+    /* The accent, and what sits on it */
     --ll-accent: #d8f35a;
+    --ll-accent-tint: rgba(216, 243, 90, 0.12);
+    --ll-accent-tint-strong: rgba(216, 243, 90, 0.2);
+    --ll-accent-edge: rgba(216, 243, 90, 0.45);
+    --ll-on-accent: #11120d;
+    --ll-tag-fill: rgba(216, 243, 90, 0.12);
+    --ll-tag-edge: rgba(216, 243, 90, 0.3);
+
+    /* Surfaces (tokens.md 8.3) */
+    --ll-surface: #1a1b1e;
+    --ll-well: #111214;
+    --ll-row: rgba(255, 255, 255, 0.035);
+    --ll-row-hover: rgba(255, 255, 255, 0.06);
+    --ll-grey: #2b2d31;
+    --ll-icon-disc: #26282c;
+    /* Dark glass over a tile or the stage: pills, badges, the » button */
+    --ll-overlay: rgba(12, 13, 15, 0.86);
+    --ll-live: #da373c;
+    --ll-on-live: #ffffff;
+    /* Not working, and danger: the health view and Reset */
+    --ll-bad-ink: #f5898d;
+    --ll-bad-fill: rgba(218, 55, 60, 0.16);
+    --ll-bad-edge: rgba(218, 55, 60, 0.45);
+    /* The overhead spotlight's warm white, as r g b for any alpha */
+    --ll-spot-rgb: 255 246 210;
+
+    /* Text, brightest to faintest */
+    --ll-ink: #f2f3f5;
+    --ll-ink-label: #dbdee1;
+    --ll-ink-secondary: #b5bac1;
+    --ll-ink-caption: #a3a9b2;
+    --ll-ink-muted: #949ba4;
+    --ll-ink-faint: #80848e;
+
+    /* Edges */
+    --ll-hairline: rgba(255, 255, 255, 0.06);
+    --ll-edge: rgba(255, 255, 255, 0.08);
+    --ll-field-edge: rgba(255, 255, 255, 0.12);
+    --ll-swatch-edge: rgba(255, 255, 255, 0.14);
+    --ll-chip-edge: rgba(255, 255, 255, 0.16);
+
+    /* Corners. An inner corner is worked out from its container's, less the gap
+       between them, so the curves stay concentric. */
+    --ll-radius-s: 4px;
+    --ll-radius-m: 8px;
+    --ll-radius-l: 10px;
+    --ll-radius-xl: 14px;
+    --ll-radius-full: 999px;
+
+    /* Weight extremes: tokens.md gives 600 and 700 for labels, built here as 800
+       against 400 captions */
+    --ll-weight-heavy: 800;
+    --ll-weight-light: 400;
+
+    /* Motion: one easing. Quick for presses and hovers, base for state changes,
+       calm for ambient light. The go-live morph keeps its own choreography (move,
+       fade, slow and the delays; tokens.md section 3). */
     --ll-ease: cubic-bezier(0.22, 0.9, 0.24, 1);
+    --ll-quick: 150ms;
+    --ll-base: 240ms;
+    --ll-calm: 320ms;
     --ll-move: 620ms;
     --ll-fade: 420ms;
     --ll-slow: 720ms;
@@ -29,6 +92,9 @@
     .limelight-slot,
     .ll-pill,
     [class*="vc-limelight-"] {
+        --ll-quick: 1ms;
+        --ll-base: 1ms;
+        --ll-calm: 1ms;
         --ll-move: 1ms;
         --ll-fade: 1ms;
         --ll-slow: 1ms;

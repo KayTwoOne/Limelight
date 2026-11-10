@@ -12,6 +12,7 @@
 // config through updateConfig; the stylesheet and the fold follow at once.
 
 import { React } from "@webpack/common";
+import { type CSSProperties } from "react";
 
 import { type StageLook } from "../logic/config";
 import { updateConfig, useLimelightConfig } from "../store/configStore";
@@ -41,8 +42,9 @@ const LOOK_HINT: Record<StageLook, string> = {
 };
 
 function InTheCall() {
-    const { stage } = useLimelightConfig();
+    const { stage, everyone } = useLimelightConfig();
     const ownUrl = useImageUrl(stage.own.type === "image" ? stage.own.imageId : undefined);
+    const tileUrl = useImageUrl(everyone.background.type === "image" ? everyone.background.imageId : undefined);
 
     return (
         <>
@@ -61,6 +63,10 @@ function InTheCall() {
                 <>
                     <div className="vc-limelight-preview" aria-hidden="true" style={{ background: previewBackground(stage.own, ownUrl, PROFILE_FALLBACK) }}>
                         <span className="vc-limelight-preview-chip">Stage background</span>
+                        {/* Two tiles in the Everyone theme and a chip, so the stage is judged against what sits on it */}
+                        <span className="vc-limelight-stage-tiles" style={{ "--ll-tile": previewBackground(everyone.background, tileUrl, PROFILE_FALLBACK) } as CSSProperties}>
+                            <span /><span /><span />
+                        </span>
                     </div>
                     <BackgroundEditor
                         background={stage.own}

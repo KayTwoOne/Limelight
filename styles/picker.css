@@ -34,7 +34,7 @@
 .vc-limelight-picker-chevron {
     flex: none;
     color: var(--interactive-normal);
-    transition: transform 0.15s ease-out;
+    transition: transform var(--ll-quick) var(--ll-ease);
 }
 
 /* Turns over while open, so the arrow says which way the list is */
@@ -247,10 +247,4 @@
     color: var(--text-muted);
     font: 400 14px/1.3 var(--font-primary);
     text-align: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .vc-limelight-picker-chevron {
-        transition: none;
-    }
 }

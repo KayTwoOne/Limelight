@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.2.2 - 2026-11-10
+
+A calmer panel. Nothing new to learn; everything is a little quieter and more
+consistent.
+
+- **Less lime.** A chosen option is a raised surface with lime text, not a solid lime
+  block. Solid lime is kept for each view's one main action and for switches that
+  are on.
+- **Health shows problems first.** Working parts carry a quiet tick, so the badges
+  that remain are the ones worth reading: Ready, Waiting and Not working.
+- **A quieter « » button.** A lime glyph at rest, like Discord's own buttons beside
+  it, with its box on hover and keyboard focus.
+- **The stage preview shows the stage in use:** two tiles in your Everyone theme and
+  a chip, so you can judge a background before you pick it.
+- **Swatches stay on one row.** The custom colour swatch no longer wraps onto a
+  line of its own when the panel scrolls.
+- **The palette button's icon stays visible while the panel is open.** It turned
+  dark on a dark button.
+- Field labels (Colour, From, To) are quieter than the section above them, chip
+  names match the weight of the name pills, and every colour, corner and timing
+  now comes from one set of values, so the panel, pills, chips and stage controls
+  match.
+
 ## 1.2.1 - 2026-11-09
 
 - **The user strip holds its shape alongside other plugins.** Plugins that restyle

@@ -14,6 +14,7 @@ import { React } from "@webpack/common";
 
 import { reportText, STATE_LABEL, summary } from "../logic/health";
 import { getHealth, healthNotes, type HealthRow, subscribeHealth, versions } from "../runtime/health";
+import { TickIcon } from "./panelIcons";
 
 const NOTE_BROKEN = {
     changed: "Discord changed this. Its own version shows instead.",
@@ -34,7 +35,10 @@ function Row({ row }: { row: HealthRow; }) {
                 <span className="vc-limelight-health-label">{row.label}</span>
                 {text && <span className="vc-limelight-health-note">{text}</span>}
             </span>
-            <span className="vc-limelight-chip" data-state={row.state}>{STATE_LABEL[row.state]}</span>
+            {/* Working recedes to a tick, so the badges left are the ones worth reading */}
+            {row.state === "working"
+                ? <span className="vc-limelight-chip" data-state="working" role="img" aria-label={STATE_LABEL.working} title={STATE_LABEL.working}><TickIcon /></span>
+                : <span className="vc-limelight-chip" data-state={row.state}>{STATE_LABEL[row.state]}</span>}
         </li>
     );
 }
@@ -80,7 +84,7 @@ export function HealthPanel() {
                 ))}
             </div>
             <p className="vc-limelight-health-legend">
-                Working: ran this session. Ready: in place, runs when you open it. Waiting: Discord hasn't loaded that part yet.
+                A tick: working, ran this session. Ready: in place, runs when you open it. Waiting: Discord hasn't loaded that part yet.
             </p>
             <p className="vc-limelight-health-versions">
                 Limelight {v.limelight} · Discord {v.discord} · Equicord {v.equicord}

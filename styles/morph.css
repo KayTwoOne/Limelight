@@ -69,7 +69,7 @@
 /* The ring appears on the pill over 300ms (tokens.md 2.8, 3). Only a speaking
    streamer's pill differs from its resting shadow, so only that one changes. */
 .limelight-tile.ll-morph-in .ll-pill {
-    animation: ll-pill-ring 300ms ease;
+    animation: ll-pill-ring var(--ll-calm) var(--ll-ease);
 }
 
 @keyframes ll-pill-ring {
@@ -177,14 +177,4 @@
 
 @keyframes ll-lead-out {
     from { transform: translateX(calc(30px * var(--ll-s))); }
-}
-
-/* Reduced motion: the tokens already make the five movement durations 1ms and
-   both delays 0ms. The ring's 300ms is a literal, so it is set here. */
-@media (prefers-reduced-motion: reduce) {
-    .limelight-tile.ll-morph-in .ll-pill,
-    .limelight-tile.ll-morph-in .ll-pill:not([data-tier="mini"]) {
-        animation-duration: 1ms;
-        animation-delay: 0ms;
-    }
 }

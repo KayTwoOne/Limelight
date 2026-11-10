@@ -135,9 +135,10 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
     transform: translate(-50%, -50%) rotate(90deg);
 }
 
-/* The « » button, shaped like the call's own controls, with the lime of
-   Limelight's own controls. It takes the height of Discord's row beside it (and is
-   as wide as it is tall), so its centre sits on theirs. */
+/* The « » button: a lime glyph at rest, as quiet as Discord's borderless buttons
+   beside it (Discord's own shading behind the controls keeps it readable); its
+   box shows on hover and keyboard focus. It takes the height of Discord's row
+   beside it (and is as wide as it is tall), so its centre sits on theirs. */
 .vc-limelight-fold-button {
     display: flex;
     flex: none;
@@ -150,25 +151,26 @@ body.limelight-folded :is([class^="sidebar_"], [class*=" sidebar_"]) > section:i
     margin: 0;
     padding: 0;
     border: 0;
-    border-radius: 10px;
-    background: rgba(20, 21, 24, 0.82);
-    box-shadow: inset 0 0 0 1px rgba(216, 243, 90, 0.45);
-    color: #d8f35a;
+    border-radius: var(--ll-radius-l);
+    background: none;
+    color: var(--ll-accent);
     cursor: pointer;
 }
 
-.vc-limelight-fold-button:hover {
-    background: rgba(32, 34, 38, 0.92);
+.vc-limelight-fold-button:hover,
+.vc-limelight-fold-button:focus-visible {
+    background: var(--ll-overlay);
+    box-shadow: inset 0 0 0 1px var(--ll-accent-edge);
 }
 
 .vc-limelight-fold-button:focus-visible {
-    outline: 2px solid #d8f35a;
+    outline: 2px solid var(--ll-accent);
     outline-offset: 3px;
 }
 
 /* After a failed check: still shown, so its tooltip can say why, but inert */
 .vc-limelight-fold-button[aria-disabled="true"] {
-    box-shadow: inset 0 0 0 1px rgba(245, 137, 141, 0.55);
-    color: #f5898d;
+    box-shadow: inset 0 0 0 1px var(--ll-bad-edge);
+    color: var(--ll-bad-ink);
     cursor: default;
 }

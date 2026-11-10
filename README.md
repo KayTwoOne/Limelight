@@ -4,7 +4,7 @@
 
 **A customisable voice call grid for Discord.**
 
-[![Version](https://img.shields.io/badge/version-1.2.1-A8C43A?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.2-A8C43A?style=flat-square)](CHANGELOG.md)
 [![Vencord](https://img.shields.io/badge/vencord%20%7C%20equicord-userplugin-9c85ef?style=flat-square)](https://vencord.dev)
 [![Discord](https://img.shields.io/badge/discord-stable-57F287?style=flat-square)](#install)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](LICENSE)
@@ -154,7 +154,7 @@ your avatar opens your profile as always.
 
 ## Health
 
-<img src="assets/showcase-health.png" alt="The Limelight panel showing Health: a lime cog beside Close, a Copy report button, and rows for the call grid and the stage, each marked Working or Ready" width="100%">
+<img src="assets/showcase-health.png" alt="The Limelight panel showing Health: a lime cog beside Close, a Copy report button, and rows for the call grid and the stage, working ones ticked and the rest marked Ready" width="100%">
 
 The same controls are on Limelight's settings page, along with **Reset all Limelight
 themes** and **Health**: every part of Limelight with whether it's working this
