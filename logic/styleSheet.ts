@@ -226,6 +226,9 @@ function preCallRules(input: SheetInput): string[] {
     return [`${PRECALL} > ${PRECALL_STAGE}{background:${scrim}${paint}}`];
 }
 
+/** How bright a quiet tile stays under Focus on the speaker */
+export const FOCUS_DIM = 0.6;
+
 export function buildSheet(input: SheetInput): string {
     const { display, everyone, people } = input.config;
     const ids = Object.keys(people);
@@ -261,6 +264,14 @@ export function buildSheet(input: SheetInput): string {
     for (const id of ids) {
         const { ring } = people[id];
         if (ring !== everyone.ring) rules.push(`${TILE}.ll-u-${id}{--status-speaking:${ring};--ll-ring:${ring}}`);
+    }
+
+    // Focus on the speaker (Display): everyone else dims, slowly enough that a pause
+    // between words doesn't flicker, and lights quickly as they speak. A stream
+    // stays lit, since it is watched. Off while editing, whose dim marks the person.
+    if (display.focusSpeaker && !input.editingUserId) {
+        rules.push(`${TILE}:not(.limelight-live){filter:brightness(${FOCUS_DIM});transition:filter var(--ll-slow) var(--ll-ease)}`);
+        rules.push(`${TILE}.ll-speaking{filter:brightness(1);transition:filter var(--ll-quick) var(--ll-ease)}`);
     }
 
     if (input.editingUserId && SNOWFLAKE.test(input.editingUserId)) {

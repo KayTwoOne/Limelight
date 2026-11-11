@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.3.0 - 2026-11-11
+
+Four new ways to shape a call, and a speaking ring that finally eases.
+
+- **Focus on the speaker** (Display). Everyone who isn't talking dims, slowly enough
+  that a pause between words doesn't flicker, and lights up quickly as they speak.
+  Streams stay lit.
+- **Spotify on pills and chips.** Someone listening on Spotify shows the track and
+  its album art. A pill shows the game someone is playing first, then their song.
+- **Theme codes.** Copy theme code, under any preset bar, gives the look you're
+  editing as a short code a friend can paste into Use a code. Image themes have no
+  code, since the picture lives only on your PC.
+- **Match avatar.** When you're editing a person, one click builds their theme from
+  their avatar's colours.
+- **The speaking ring eases on and off.** 1.2.3 meant to do this and didn't: Discord
+  keeps the ring on every tile and redraws it as someone's volume changes, so it now
+  eases between those changes instead of fading in once.
+
 ## 1.2.3 - 2026-11-10
 
 Motion that shows where things go, and a stage that reaches the controls.

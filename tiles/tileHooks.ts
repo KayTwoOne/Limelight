@@ -10,7 +10,7 @@
 // failed to apply leaves nothing of Limelight's styling on Discord's tiles. The
 // theme itself is never set here: it comes from the generated stylesheet.
 
-import { ApplicationStreamingStore } from "@webpack/common";
+import { ApplicationStreamingStore, SpeakingStore } from "@webpack/common";
 
 import { ParticipantType } from "../logic/fold";
 import { endedRecently, startedRecently } from "../stream/streamHooks";
@@ -59,6 +59,9 @@ export function tileClasses(original: string, participant: unknown): string {
         owner && `ll-u-${owner}`,
         p.type === ParticipantType.STREAM && "limelight-live",
         isWatching(p) && "limelight-watching",
+        // Discord's tile re-renders as its person starts and stops speaking, so this
+        // stays current; Focus on the speaker keys on it
+        owner && SpeakingStore.isSpeaking(owner) && "ll-speaking",
         owner && p.type === ParticipantType.STREAM && startedRecently(owner) && "ll-morph-in",
         owner && p.type === ParticipantType.USER && endedRecently(owner) && "ll-morph-out"
     );

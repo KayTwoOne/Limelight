@@ -73,14 +73,12 @@
  * While a person is live the tile-edge ring is hidden and the pill carries it.
  * The inline box-shadow Discord writes needs !important to lose.
  */
-/* Tier 3: Discord mounts the ring only while someone speaks, so it can fade in but
-   not out; the fade softens the blink as speech starts and stops */
-.limelight-tile :is([class^="border_"],[class*=" border_"]) {
-    animation: ll-ring-in var(--ll-quick) var(--ll-ease);
-}
-
-@keyframes ll-ring-in {
-    from { opacity: 0; }
+/* Tier 3: Discord keeps the ring mounted on every tile in a call and redraws its
+   inline shadow as the person's volume changes, over 100ms. A longer ease calms it,
+   on and off. The guard's ID strength outranks Discord's .app-focused rule, which
+   loads after this sheet. */
+.limelight-tile :is([class^="border_"],[class*=" border_"]):not(#ll-ring-guard) {
+    transition: box-shadow var(--ll-base) var(--ll-ease);
 }
 
 @media not (forced-colors: active) {

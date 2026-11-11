@@ -55,6 +55,8 @@ export interface DisplaySettings {
     autoMaximise: boolean;
     /** No Invite to Voice row under your voice channel, and no empty tile when you're alone in a call */
     hideInvitePrompts: boolean;
+    /** Everyone but whoever is speaking dims; a stream stays lit */
+    focusSpeaker: boolean;
 }
 
 /** A saved look, named by the person. Applying one copies its theme. */
@@ -138,7 +140,7 @@ export function defaultConfig(): LimelightConfig {
             look: "discord",
             own: { type: "gradient", from: "#0f2b24", to: "#13453a", angle: 160 }
         },
-        display: { gridZoom: 100, corners: "discord", spacing: "normal", disableUserThemes: false, autoMaximise: false, hideInvitePrompts: false },
+        display: { gridZoom: 100, corners: "discord", spacing: "normal", disableUserThemes: false, autoMaximise: false, hideInvitePrompts: false, focusSpeaker: false },
         presets: [],
         tiles: { smallBots: false, size: "half", place: "below", people: {} },
         stage: {
@@ -293,7 +295,8 @@ export function sanitiseConfig(raw: unknown): LimelightConfig {
             spacing: pick(display.spacing, ["tight", "normal", "airy"] as const, d.display.spacing),
             disableUserThemes: boolOr(display.disableUserThemes, d.display.disableUserThemes),
             autoMaximise: boolOr(display.autoMaximise, d.display.autoMaximise),
-            hideInvitePrompts: boolOr(display.hideInvitePrompts, d.display.hideInvitePrompts)
+            hideInvitePrompts: boolOr(display.hideInvitePrompts, d.display.hideInvitePrompts),
+            focusSpeaker: boolOr(display.focusSpeaker, d.display.focusSpeaker)
         },
         presets: sanitisePresets(r.presets),
         tiles: {

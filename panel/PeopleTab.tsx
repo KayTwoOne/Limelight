@@ -14,11 +14,14 @@ import { ChannelRTCStore, ChannelStore, React, SelectedChannelStore, UserProfile
 
 import { normaliseHex } from "../logic/colour";
 import { type Preset, type Theme, type TileSize } from "../logic/config";
+import { avatarTheme } from "../logic/matchAvatar";
 import { decodePeople, peopleKey, type PersonEntry, type PersonLike } from "../logic/people";
 import { copyTheme, matchingPreset } from "../logic/presets";
 import { themeFor } from "../logic/theme";
 import { setEditingUserId } from "../runtime/editing";
+import { limelightToast } from "../runtime/toast";
 import { updateConfig, useLimelightConfig } from "../store/configStore";
+import { samplePixels } from "../store/imagePipeline";
 import { useImageUrl } from "../store/imageStore";
 import { ChevronLeftIcon, ChevronRightIcon } from "./panelIcons";
 import { PresetBar, presetOptions } from "./PresetBar";
@@ -170,6 +173,18 @@ function PersonEditor({ person, guildId, backRef, onBack }: PersonEditorProps) {
         setResets(count => count + 1);
     }
 
+    // The still avatar, since an animated one's first frame may not be its look
+    async function matchAvatar(): Promise<void> {
+        const url = UserStore.getUser(person.id)?.getAvatarURL(guildId, 64, false);
+        try {
+            const next = url ? avatarTheme(await samplePixels(url, 32), theme) : null;
+            if (!next) throw new Error("no colours");
+            applyPreset(next);
+        } catch {
+            limelightToast(`Couldn't read ${name}'s avatar`, "failure");
+        }
+    }
+
     return (
         <>
             <div className="vc-limelight-editor-head">
@@ -191,7 +206,7 @@ function PersonEditor({ person, guildId, backRef, onBack }: PersonEditorProps) {
                 </div>
             </div>
             <TileSizeField userId={person.id} />
-            <PresetBar theme={theme} onApply={applyPreset} />
+            <PresetBar theme={theme} onApply={applyPreset} onMatchAvatar={matchAvatar} />
             <ThemeEditor key={resets} theme={theme} onChange={save} profile={profile} />
         </>
     );

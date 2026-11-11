@@ -85,6 +85,19 @@ function draw(bitmap: ImageBitmap, width: number, height: number): Surface {
     return made;
 }
 
+// A picture on Discord's CDN, shrunk to size by size pixels, for Match avatar. The
+// CDN allows any origin, so it is fetched as a blob and the canvas is never tainted.
+export async function samplePixels(url: string, size: number): Promise<Uint8ClampedArray> {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`The picture gave ${response.status}`);
+    const bitmap = await createImageBitmap(await response.blob());
+    try {
+        return draw(bitmap, size, size).ctx.getImageData(0, 0, size, size).data;
+    } finally {
+        bitmap.close();
+    }
+}
+
 export async function processImage(file: File): Promise<ProcessedImage> {
     if (!isAcceptedType(file.type)) throw new ImageRejected("Choose a PNG, JPEG, WebP or GIF image.");
 

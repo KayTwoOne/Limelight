@@ -98,15 +98,17 @@ function ChipFace({ participant }: { participant: ChipParticipant; }) {
         const p = id && channelId ? ChannelRTCStore.getParticipant(channelId, id) as unknown as RtcParticipant | null : null;
         return typeof p?.voicePlatform === "number" ? p.voicePlatform : -1;
     }, [id, channelId]);
-    const activityName = useStateFromStores([PresenceStore], () => chipActivity(id ? PresenceStore.getActivities(id) as never : [])?.name ?? "", [id]);
-    const applicationId = useStateFromStores([PresenceStore], () => chipActivity(id ? PresenceStore.getActivities(id) as never : [])?.applicationId ?? "", [id]);
+    const face = () => chipActivity(id ? PresenceStore.getActivities(id) as never : []);
+    const activityName = useStateFromStores([PresenceStore], () => face()?.name ?? "", [id]);
+    const applicationId = useStateFromStores([PresenceStore], () => face()?.applicationId ?? "", [id]);
+    const art = useStateFromStores([PresenceStore], () => face()?.art ?? "", [id]);
     const iconHash = useStateFromStores([ApplicationStore], () => applicationId ? ApplicationStore.getApplication(applicationId)?.icon ?? "" : "", [applicationId]);
     const [failedIcon, setFailedIcon] = React.useState<string | null>(null);
 
     const guildId = ChannelStore.getChannel(channelId)?.guild_id ?? null;
     const avatar = user?.getAvatarURL?.(guildId, 64);
     const name = participant.userNick || user?.globalName || user?.username || "";
-    const iconUrl = applicationId && iconHash ? IconUtils.getApplicationIconURL({ id: applicationId, icon: iconHash }) as string | undefined : undefined;
+    const iconUrl = art || (applicationId && iconHash ? IconUtils.getApplicationIconURL({ id: applicationId, icon: iconHash }) as string | undefined : undefined);
     const isConsole = platform === PLATFORM_XBOX || platform === PLATFORM_PLAYSTATION;
     const hasIcons = voice !== 0 || platform === PLATFORM_MOBILE || isConsole;
 

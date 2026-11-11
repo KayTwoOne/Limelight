@@ -4,7 +4,7 @@
 
 **A customisable voice call grid for Discord.**
 
-[![Version](https://img.shields.io/badge/version-1.2.3-A8C43A?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.0-A8C43A?style=flat-square)](CHANGELOG.md)
 [![Vencord](https://img.shields.io/badge/vencord%20%7C%20equicord-userplugin-9c85ef?style=flat-square)](https://vencord.dev)
 [![Discord](https://img.shields.io/badge/discord-stable-57F287?style=flat-square)](#install)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](LICENSE)
@@ -42,7 +42,10 @@ you change one.
   on screen.
 - **The screen before you join.** The pre-call screen can take the same looks, with a
   Limelight button beside Join Voice that matches your theme.
-- **Presets.** Save a look once, then hand it to anyone from a dropdown.
+- **Presets.** Save a look once, then hand it to anyone from a dropdown. Share a look
+  with a friend as a short code, or take one from someone's avatar in a click.
+- **Focus on the speaker.** Everyone who isn't talking dims, so a big call reads at a
+  glance. Streams stay lit.
 - **A stage of your own, wall to wall.** Pick what sits behind the tiles, then fold
   the channel list away: your user section stands in the server list as a slim
   strip, nameplate and all, and the stage fills the window.
@@ -52,8 +55,9 @@ you change one.
   never leaves you guessing.
 - **Sized to the tile.** Pills, avatars and badges scale with each tile, so a call
   reads the same in a small window as it does full screen on an ultrawide.
-- **Stays on your PC.** Themes and images are stored locally for your account.
-  Limelight makes no network requests of its own.
+- **Stays on your PC.** Themes and images are stored locally for your account. The
+  only pictures Limelight fetches are ones Discord already shows you: an avatar when
+  you click Match avatar, and Spotify album art.
 
 ## Themes
 
@@ -101,7 +105,7 @@ panel with five tabs:
 | **Everyone** | The theme for anyone without one of their own. |
 | **Stage** | **In the call**: the background behind every tile, and the channel list button. **Before you join**: the look of the screen you see before joining a voice channel. |
 | **Chat** | How the call chat looks, how it joins the grid, theme dots and the channel picker. |
-| **Display** | Grid zoom, tile corners and spacing, three switches and small tiles (below). |
+| **Display** | Grid zoom, tile corners and spacing, four switches and small tiles (below). |
 
 Every change applies live to the real tiles and saves straight away. Escape, the close
 button or the palette button closes it.
@@ -116,6 +120,7 @@ button or the palette button closes it.
 | Disable all user themes | On or off: one calm dark grey for every tile | Off |
 | Auto maximise livestream upon joining | On or off | Off |
 | Hide invite prompts | On or off: no Invite to Voice row under your voice channel, and no empty tile when you're alone in a call | Off |
+| Focus on the speaker | On or off: everyone who isn't talking dims, and lights up as they speak; streams stay lit | Off |
 | Bots get small tiles | On or off: bots go in a strip of smaller tiles, so the people you're talking to keep the space | Off |
 | Small tile size | Half or Third of a normal tile's width, or Chip: one slim line with avatar, name and mute icons | Half |
 | Small tiles sit | Below or Above the grid | Below |
@@ -126,7 +131,8 @@ into the room the strip leaves. With nobody small, the call looks exactly as bef
 
 **Bots as chips.** With Small tile size on **Chip**, each small person is one slim
 line under the grid: their avatar and name, every kind of mute and deafen, their
-platform, and what they're playing or listening to. It is still Discord's own tile
+platform, and what they're playing or listening to (on Spotify, the track and its
+album art, as on a person's name pill). It is still Discord's own tile
 underneath, so a click, a right-click and the speaking ring work as they always have.
 
 ## Presets
@@ -137,6 +143,13 @@ Every theme editor has a **Preset** bar: **Save as preset** names the look
 you're editing (up to 20 presets), and the dropdown puts a saved look on whoever you're
 editing. In People, each person has the same dropdown under their row. Applying a
 preset copies it, so editing a preset later never changes anyone you gave it to.
+
+Under the bar, **Copy theme code** puts the look you're editing on your clipboard as a
+short code, like `ll1.g.b3123e.2a0610.155.s.d8f35a`, for a friend with Limelight to
+paste into **Use a code**. A code carries the background, spotlight and ring; an image
+theme has none, since the picture lives only on your PC. When you're editing a
+person, **Match avatar** builds their theme from their avatar: its two main colours
+make the gradient and its most vivid colour the ring.
 
 ## The Stage
 
@@ -256,9 +269,11 @@ To update: `git pull` inside `src/userplugins/limelight`, then `pnpm build` and
 - **Storage is per account**, in your client's own IndexedDB. Every load rebuilds your
   settings from a list of known values, so a corrupt entry falls back to its default
   rather than breaking anything.
-- **No network requests of its own.** Picking a channel in the call chat asks Discord
-  for that channel's messages, the same request Discord makes when you open it
-  yourself. Nothing runs on a timer.
+- **No network requests beyond what Discord makes.** Picking a channel in the call
+  chat asks Discord for that channel's messages, the same request Discord makes when
+  you open it yourself. Match avatar downloads the avatar Discord already shows, and
+  Spotify album art comes from Spotify's image host, as on Discord's own activity
+  card. Nothing runs on a timer.
 - **Accessible.** Reduced motion turns every animation into an instant change, every
   control has a visible lime focus ring, and colour is never the only signal: names
   sit beside dots and badges carry text.
@@ -266,7 +281,8 @@ To update: `git pull` inside `src/userplugins/limelight`, then `pnpm build` and
 ## Not in Limelight yet
 
 - Reordering individual tiles.
-- Sharing themes with other people. Your themes are only ever seen on your own client.
+- Themes other people see. Your themes are only ever seen on your own client; a theme
+  code lets a friend with Limelight wear the same look on theirs.
 - Threads or other voice channels' chats in the channel picker.
 
 ## Brand

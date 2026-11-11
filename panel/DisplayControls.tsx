@@ -109,6 +109,13 @@ export function DisplayControls() {
                     checked={display.hideInvitePrompts}
                     onChange={next => updateConfig(draft => { draft.display.hideInvitePrompts = next; })}
                 />
+                <SwitchRow
+                    label="Focus on the speaker"
+                    hint="Everyone else dims; streams stay lit"
+                    tag="New"
+                    checked={display.focusSpeaker}
+                    onChange={next => updateConfig(draft => { draft.display.focusSpeaker = next; })}
+                />
             </div>
 
             {/* Small tiles (tiles/SplitGrid.tsx): who goes small is set here for

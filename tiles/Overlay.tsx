@@ -12,6 +12,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { ApplicationStore, ChannelRTCStore, IconUtils, PresenceStore, React, UserStore, useStateFromStores } from "@webpack/common";
 import { type ComponentType } from "react";
 
+import { pillActivity } from "../logic/activity";
 import { ParticipantType } from "../logic/fold";
 import { MINI_BELOW_PX } from "../logic/scale";
 import { ConsoleIcon, DeafenedIcon, GameGlyph, MobileIcon, MutedIcon, ShieldIcon, StreamingIcon } from "./icons";
@@ -22,7 +23,6 @@ import { measurePill, observePill } from "./tiers";
 const PLATFORM_MOBILE = 1;
 const PLATFORM_XBOX = 2;
 const PLATFORM_PLAYSTATION = 3;
-const ACTIVITY_PLAYING = 0;
 const AVATAR_SIZE = 40;
 
 // The props Discord gives its tile overlay that the pill reads.
@@ -52,12 +52,6 @@ interface OwnerParticipant {
     voiceState?: { isVoiceMuted?(): boolean; isVoiceDeafened?(): boolean; } | null;
 }
 
-interface PlayingActivity {
-    type: number;
-    name?: string;
-    application_id?: string;
-}
-
 // The owner's voice state, speaking and platform as one number, so a store
 // mapper returns a primitive: bit 0 muted, bit 1 deafened, bit 2 speaking, the
 // rest the platform plus one (zero when unknown).
@@ -73,9 +67,8 @@ function readOwner(channelId: string | undefined, userId: string | null): number
     return bits;
 }
 
-function playing(userId: string | null): PlayingActivity | undefined {
-    if (!userId) return undefined;
-    return (PresenceStore.getActivities(userId) as unknown as PlayingActivity[]).find(a => a.type === ACTIVITY_PLAYING);
+function shown(userId: string | null) {
+    return userId ? pillActivity(PresenceStore.getActivities(userId) as never) : null;
 }
 
 export function Pill(props: PillProps) {
@@ -87,8 +80,9 @@ export function Pill(props: PillProps) {
 
     // A STREAM participant has no voice state of its own: the owner's is read.
     const owner = useStateFromStores([ChannelRTCStore], () => live ? readOwner(channelId, userId) : 0, [live, channelId, userId]);
-    const activityName = useStateFromStores([PresenceStore], () => playing(userId)?.name ?? "", [userId]);
-    const applicationId = useStateFromStores([PresenceStore], () => playing(userId)?.application_id ?? "", [userId]);
+    const activityName = useStateFromStores([PresenceStore], () => shown(userId)?.name ?? "", [userId]);
+    const applicationId = useStateFromStores([PresenceStore], () => shown(userId)?.applicationId ?? "", [userId]);
+    const art = useStateFromStores([PresenceStore], () => shown(userId)?.art ?? "", [userId]);
     const iconHash = useStateFromStores([ApplicationStore], () => applicationId ? ApplicationStore.getApplication(applicationId)?.icon ?? "" : "", [applicationId]);
     const avatarUrl = useStateFromStores([UserStore], () => live && userId ? UserStore.getUser(userId)?.getAvatarURL(guildId, AVATAR_SIZE) ?? "" : "", [live, userId, guildId]);
     const [failedIcon, setFailedIcon] = React.useState<string | null>(null);
@@ -111,7 +105,7 @@ export function Pill(props: PillProps) {
     const isConsole = platform === PLATFORM_XBOX || platform === PLATFORM_PLAYSTATION;
     const hasIcons = live || isMuted || isDeafened || platform === PLATFORM_MOBILE || isConsole;
 
-    const iconUrl = applicationId && iconHash ? IconUtils.getApplicationIconURL({ id: applicationId, icon: iconHash }) as string | undefined : undefined;
+    const iconUrl = art || (applicationId && iconHash ? IconUtils.getApplicationIconURL({ id: applicationId, icon: iconHash }) as string | undefined : undefined);
 
     // Everything that changes how wide the pill's parts are, so the tier is
     // measured again after the render that changed it.
@@ -169,7 +163,7 @@ export function Pill(props: PillProps) {
                     <span className="ll-pill-act">
                         {iconUrl && failedIcon !== iconUrl
                             ? <img className="ll-pill-act-icon" src={iconUrl} alt="" draggable={false} onError={() => setFailedIcon(iconUrl)} />
-                            : <GameGlyph />}
+                            : !art && <GameGlyph />}
                         {activityName}
                     </span>
                 </span>

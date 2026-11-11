@@ -7,13 +7,16 @@
 // The preset bar above a theme editor (a person's, or Everyone): the preset
 // dropdown, Save as preset, and the manage list behind the dropdown's last item.
 // Applying a preset copies its theme (logic/presets.ts), so editing the preset
-// later never changes anyone it was given to.
+// later never changes anyone it was given to. Under the bar, a theme travels as a
+// short code (logic/shareCode.ts): Copy theme code, and Use a code to apply one.
 
+import { copyWithToast } from "@utils/discord";
 import { Alerts, React } from "@webpack/common";
 import { type KeyboardEvent } from "react";
 
 import { MAX_PRESETS, type Preset, type Theme } from "../logic/config";
 import { addPreset, copyTheme, deletePreset, matchingPreset, type NameProblem, presetNameProblem, renamePreset } from "../logic/presets";
+import { readThemeCode, themeCode } from "../logic/shareCode";
 import { updateConfig, useLimelightConfig } from "../store/configStore";
 import { useImageUrl } from "../store/imageStore";
 import { Select, type SelectOption } from "./Select";
@@ -50,16 +53,21 @@ function nameKeys(onEnter: () => void, onEscape: () => void) {
 interface PresetBarProps {
     theme: Theme;
     onApply(theme: Theme): void;
+    /** A person's bar only: a theme from their avatar */
+    onMatchAvatar?(): void;
 }
 
-export function PresetBar({ theme, onApply }: PresetBarProps) {
+export function PresetBar({ theme, onApply, onMatchAvatar }: PresetBarProps) {
     const { presets } = useLimelightConfig();
-    const [mode, setMode] = React.useState<"idle" | "saving" | "managing">("idle");
+    const [mode, setMode] = React.useState<"idle" | "saving" | "pasting" | "managing">("idle");
+    // The preset's name while saving, the pasted text while using a code
     const [name, setName] = React.useState("");
     const [tried, setTried] = React.useState(false);
     const current = matchingPreset(theme, presets);
     const full = presets.length >= MAX_PRESETS;
     const problem = presetNameProblem(name, presets);
+    const code = themeCode(theme);
+    const pasted = mode === "pasting" ? readThemeCode(name) : null;
 
     function save(): void {
         setTried(true);
@@ -68,6 +76,13 @@ export function PresetBar({ theme, onApply }: PresetBarProps) {
         setMode("idle");
         setName("");
         setTried(false);
+    }
+
+    function usePasted(): void {
+        setTried(true);
+        if (!pasted) return;
+        onApply(pasted);
+        cancel();
     }
 
     function cancel(): void {
@@ -80,8 +95,29 @@ export function PresetBar({ theme, onApply }: PresetBarProps) {
 
     return (
         <div className="vc-limelight-field">
-            <span className="vc-limelight-section-label">{mode === "saving" ? "Save as preset" : "Preset"}</span>
-            {mode === "saving" ? (
+            <span className="vc-limelight-section-label">{mode === "saving" ? "Save as preset" : mode === "pasting" ? "Use a code" : "Preset"}</span>
+            {mode === "pasting" ? (
+                <>
+                    <div className="vc-limelight-preset-save">
+                        <input
+                            className="vc-limelight-input"
+                            value={name}
+                            maxLength={200}
+                            autoFocus
+                            aria-label="Theme code"
+                            aria-invalid={tried && !pasted}
+                            placeholder="Paste a theme code"
+                            onChange={event => setName(event.currentTarget.value)}
+                            onKeyDown={nameKeys(usePasted, cancel)}
+                        />
+                        <button type="button" className="vc-limelight-primary" onClick={usePasted}>Use</button>
+                        <button type="button" className="vc-limelight-outline" onClick={cancel}>Cancel</button>
+                    </div>
+                    <p className="vc-limelight-caption" role={tried && !pasted ? "alert" : undefined}>
+                        {tried && !pasted ? "That isn't a Limelight theme code." : "Sets the background, spotlight and ring from a friend's code."}
+                    </p>
+                </>
+            ) : mode === "saving" ? (
                 <>
                     <div className="vc-limelight-preset-save">
                         <input
@@ -125,6 +161,20 @@ export function PresetBar({ theme, onApply }: PresetBarProps) {
                     >
                         Save as preset
                     </button>
+                </div>
+            )}
+            {mode === "idle" && (
+                <div className="vc-limelight-share">
+                    <button
+                        type="button"
+                        aria-disabled={!code || undefined}
+                        title={code ? undefined : "An image stays on this computer, so it has no code"}
+                        onClick={() => { if (code) copyWithToast(code, "Theme code copied"); }}
+                    >
+                        Copy theme code
+                    </button>
+                    <button type="button" onClick={() => setMode("pasting")}>Use a code</button>
+                    {onMatchAvatar && <button type="button" onClick={onMatchAvatar}>Match avatar</button>}
                 </div>
             )}
         </div>

@@ -7,6 +7,8 @@
 // Chip small tiles (tiles/ChipStrip.tsx): each small person as one 40px line, with
 // Discord's own tile stretched behind Limelight's face. Pure.
 
+import { type ActivityFace, activityFace, type ActivityLike } from "./activity";
+
 /** A chip's height, the mockup's one line */
 export const CHIP_H = 40;
 /** The width Discord's tile is told it has, so it lays itself out compact */
@@ -51,19 +53,12 @@ export function chipVoice(v: ChipVoiceState): { muted: boolean; deafened: boolea
     return { deafened, muted: !deafened && (v.selfMute === true || v.mute === true || v.localMute === true) };
 }
 
-interface ActivityLike {
-    type: number;
-    name?: string;
-    application_id?: string;
-}
-
 // Playing, Listening, Watching and Competing: what a bot is doing. A custom status
 // (4) is not an activity.
 const CHIP_ACTIVITY_TYPES: readonly number[] = [0, 2, 3, 5];
 
-export function chipActivity(activities: readonly ActivityLike[]): { name: string; applicationId: string | null; } | null {
-    const a = activities.find(x => CHIP_ACTIVITY_TYPES.includes(x.type) && typeof x.name === "string" && x.name.length > 0);
-    return a ? { name: a.name!, applicationId: a.application_id ?? null } : null;
+export function chipActivity(activities: readonly ActivityLike[]): ActivityFace | null {
+    return activityFace(activities.find(x => CHIP_ACTIVITY_TYPES.includes(x.type) && typeof x.name === "string" && x.name.length > 0));
 }
 
 /** Clear space between chips and the call's controls (or header), past Discord's own pad */

@@ -1221,6 +1221,28 @@
     gap: 8px;
 }
 
+/* Copy theme code and Use a code (Tier 4): quiet text actions under the bar */
+.vc-limelight-share {
+    display: flex;
+    gap: 16px;
+}
+
+.vc-limelight-share > button {
+    min-height: 28px;
+    color: var(--ll-ink-caption);
+    font-size: 13px;
+    font-weight: var(--ll-weight-light);
+}
+
+.vc-limelight-share > button:not([aria-disabled="true"]):hover {
+    color: var(--ll-accent);
+}
+
+.vc-limelight-share > button[aria-disabled="true"] {
+    cursor: default;
+    opacity: 0.45;
+}
+
 /* A person in the People tab: their row, and a preset dropdown under it */
 .vc-limelight-person-card {
     display: flex;
